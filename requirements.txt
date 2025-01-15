@@ -1,0 +1,6 @@
+django[asyncio, argon2]
+django-seed
+djangorestframework
+djangorestframework-simplejwt
+requests
+bleach
