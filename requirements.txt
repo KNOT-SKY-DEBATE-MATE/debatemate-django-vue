@@ -1,7 +1,11 @@
 python-decouple
 django[asyncio, argon2]
 django-allauth
+django-nh3
 djangorestframework
 djangorestframework-simplejwt
+certbot
+certbot-nginx
+gunicorn
+cryptography
 requests
-bleach
