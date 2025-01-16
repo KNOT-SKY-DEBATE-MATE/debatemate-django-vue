@@ -12,7 +12,7 @@ from .api_views import (
 
 urlpatterns = [
     path(
-        route='api/',
+        route='api/group/',
         view=GroupAPIView.as_view(),
     ),
     path(

@@ -16,35 +16,37 @@ Including another URLconf
 """
 from django.urls import path, include
 
-urlpatterns = [
 
+"""
+    path(
+        route='oauth2/',
+        view=include('allauth.urls'),
+    ),
+    """
+
+urlpatterns = [
     path(
         route='',
         view=include('apps.user.urls'),
     ),
-
     path(
         route='',
         view=include('apps.user.api_urls'),
     ),
-
     path(
         route='',
         view=include('apps.group.urls'),
     ),
-
     path(
         route='',
         view=include('apps.group.api_urls'),
     ),
-
     path(
         route='',
-        view=include('apps.discussion.urls'),
+        view=include('apps.meeting.urls'),
     ),
-
     path(
         route='',
-        view=include('apps.discussion.api_urls'),
+        view=include('apps.meeting.api_urls'),
     ),
 ]

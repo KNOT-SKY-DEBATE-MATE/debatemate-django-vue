@@ -10,32 +10,26 @@ from .api_views import (
 )
 
 urlpatterns = [
-
     path(
         route='api/user/csrftoken/',
         view=UserCSRFTokenAPIView.as_view(),
     ),
-
     path(
         route='api/user/signup/',
         view=UserSignupAPIView.as_view(),
     ),
-
     path(
         route='api/user/signin/',
         view=UserSigninAPIView.as_view(),
     ),
-
     path(
         route='api/user/signout/',
         view=UserSignoutAPIView.as_view(),
     ),
-
     path(
         route='api/user/<uuid:user_id>/',
         view=UserOneAPIView.as_view(),
     ),
-
     path(
         route='api/user/<uuid:user_id>/group/',
         view=UserGroupAPIView.as_view(),

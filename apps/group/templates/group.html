@@ -22,12 +22,12 @@
       </div>
       <div class="flex-grow-1 overflow-auto">
         <button class="btn btn-primary d-flex justify-content-center align-items-center gap-2 w-100 mb-3"
-          :disabled="isLoading" @click="groupDiscussionCreateFormIsOpen = true">
+          :disabled="isLoading" @click="groupMeetingCreateFormIsOpen = true">
           <i class="material-icons">add_comment</i>新しいディスカッション
         </button>
         <div class="flex-grow-1 overflow-auto">
-          <div v-for="groupDiscussion in groupDiscussionList" :key="groupDiscussion.id" class="card mb-2">
-            <div class="card-body">[[ groupDiscussion.name ]]</div>
+          <div v-for="groupMeeting in groupMeetingList" :key="groupMeeting.id" class="card mb-2">
+            <div class="card-body">[[ groupMeeting.name ]]</div>
           </div>
         </div>
       </div>
@@ -137,9 +137,9 @@
           groupMessageCreateForm: {
             content: "",
           },
-          groupDiscussionList: [],
-          groupDiscussionCreateFormIsOpen: false,
-          groupDiscussionCreateForm: {
+          groupMeetingList: [],
+          groupMeetingCreateFormIsOpen: false,
+          groupMeetingCreateForm: {
             name: "",
             description: "",
           },
@@ -184,10 +184,10 @@
           try {
             this.isLoading = true;
             await axios.get("/api/user/csrftoken/");
-            this.groupDiscussionList.push((await axios.post("/api/group/{{ group.id }}/discussion/", this.groupDiscussionCreateForm)).data);
-            this.groupDiscussionCreateFormIsOpen = false;
-            this.groupDiscussionCreateForm.name = '';
-            this.groupDiscussionCreateForm.description = '';
+            this.groupMeetingList.push((await axios.post("/api/group/{{ group.id }}/discussion/", this.groupMeetingCreateForm)).data);
+            this.groupMeetingCreateFormIsOpen = false;
+            this.groupMeetingCreateForm.name = '';
+            this.groupMeetingCreateForm.description = '';
           } catch (error) {
             console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
             alert({

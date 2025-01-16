@@ -4,7 +4,7 @@ import uuid
 from django.db import models
 
 
-class Discussion(models.Model):
+class Meeting(models.Model):
 
     """
     Discussion Model
@@ -28,12 +28,14 @@ class Discussion(models.Model):
     class Meta:
 
         # Model options
-        verbose_name = 'Discussion'
-        verbose_name_plural = 'Discussions'
+        verbose_name = 'Meeting'
+        verbose_name_plural = 'Meetings'
 
-        # Indexes
-        indexes = [
-            models.Index(fields=['group', 'title']),
+        # Constraints
+        constraints = [
+            # Unique constraint for group and title
+            models.UniqueConstraint(
+                fields=['group', 'title'], name='unique_group_title'),
         ]
 
     def save(self, *args, **kwargs):
@@ -45,27 +47,24 @@ class Discussion(models.Model):
         self.description = bleach.clean(self.description)
 
         # Save
-        super(Discussion, self).save(*args, **kwargs)
+        super(Meeting, self).save(*args, **kwargs)
 
 
-class DiscussionMember(models.Model):
+class MeetingMember(models.Model):
 
     """
     Discussion Member Model
     """
 
     # Fields
-    discussion = models.ForeignKey(
-        to=Discussion,
-        on_delete=models.CASCADE, related_name='discussionmember')
+    meeting = models.ForeignKey(
+        to=Meeting,
+        on_delete=models.CASCADE, related_name='meetingmember')
 
     # Fields
-    user = models.ForeignKey(
-        to='user.User',
-        on_delete=models.CASCADE, related_name='discussionmember')
-
-    # Fields
-    nickname = models.CharField(max_length=255)
+    member = models.ForeignKey(
+        to='auth.User',
+        on_delete=models.CASCADE, related_name='meetingmember')
 
     # Fields
     is_kicked = models.BooleanField(default=False)
@@ -73,36 +72,39 @@ class DiscussionMember(models.Model):
     class Meta:
 
         # Model options
-        verbose_name = 'Discussion Member'
-        verbose_name_plural = 'Discussion Members'
+        verbose_name = 'Meeting Member'
+        verbose_name_plural = 'Meeting Members'
 
         # Constraints
         constraints = [
-            # Unique constraint for discussion and user
+            # Unique constraint for meeting and user
             models.UniqueConstraint(
-                fields=['discussion', 'user'], name='unique_discussion_user'),
-            # Unique constraint for discussion and nickname
+                fields=['meeting', 'user'], name='unique_meeting_user'),
+            # Unique constraint for meeting and nickname
             models.UniqueConstraint(
-                fields=['discussion', 'nickname'], name='unique_discussion_member_nickname')
+                fields=['meeting', 'nickname'], name='unique_meeting_member_nickname')
         ]
 
     def save(self, *args, **kwargs):
 
+        # Sanitize nickname
+        self.nickname = bleach.clean(self.nickname)
+
         # Save
-        super(DiscussionMember, self).save(*args, **kwargs)
+        super(MeetingMember, self).save(*args, **kwargs)
 
 
-class DiscussionMessage(models.Model):
+class MeetingMessage(models.Model):
 
     """
     Discussion Message Model
     """
 
     # Fields
-    discussion = models.ForeignKey(Discussion, on_delete=models.CASCADE)
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE)
 
     # Fields
-    sender = models.ForeignKey(DiscussionMember, on_delete=models.CASCADE)
+    sender = models.ForeignKey(MeetingMember, on_delete=models.CASCADE)
 
     # Fields
     content = models.TextField(max_length=1024, blank=True)
@@ -116,8 +118,11 @@ class DiscussionMessage(models.Model):
     class Meta:
 
         # Model options
-        verbose_name = 'Discussion Message'
-        verbose_name_plural = 'Discussion Messages'
+        verbose_name = 'Meeting Message'
+        verbose_name_plural = 'Meeting Messages'
+
+        # Ordering
+        ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
 
@@ -125,17 +130,17 @@ class DiscussionMessage(models.Model):
         self.content = bleach.clean(self.content)
 
         # Save
-        super(DiscussionMessage, self).save(*args, **kwargs)
+        super(MeetingMessage, self).save(*args, **kwargs)
 
 
-class DiscussionMessageAnnotation(models.Model):
+class MeetingMessageAnnotation(models.Model):
 
     """
     Discussion Message Summary Model
     """
 
     # Fields
-    message = models.ForeignKey(DiscussionMessage, on_delete=models.CASCADE)
+    message = models.ForeignKey(MeetingMessage, on_delete=models.CASCADE)
 
     # Fields
     summary = models.TextField(max_length=255, blank=True)
@@ -152,8 +157,8 @@ class DiscussionMessageAnnotation(models.Model):
     class Meta:
 
         # Model options
-        verbose_name = 'Discussion Message Summary'
-        verbose_name_plural = 'Discussion Message Summaries'
+        verbose_name = 'Meeting Message Annotation'
+        verbose_name_plural = 'Meeting Message Annotations'
 
     def save(self, *args, **kwargs):
 
@@ -170,4 +175,4 @@ class DiscussionMessageAnnotation(models.Model):
         self.warning = bleach.clean(self.warning)
 
         # Save
-        super(DiscussionMessageAnnotation, self).save(*args, **kwargs)
+        super(MeetingMessageAnnotation, self).save(*args, **kwargs)

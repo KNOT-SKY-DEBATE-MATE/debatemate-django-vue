@@ -1,38 +1,6 @@
-import bleach
-import uuid
+import typing
 
-from django.db import models
-from django.contrib.auth.models import (
-    AbstractUser,
-    PermissionsMixin
-)
+from django.contrib.auth.models import User
 
 
-class User(AbstractUser, PermissionsMixin):
-
-    """
-    A user group in the system.
-    """
-
-    # User ID
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-
-    def save(self, *args, **kwargs):
-        """
-        Sanitize username and email
-        """
-
-        # Sanitize username
-        self.username = bleach.clean(self.username)
-
-        # Sanitize email
-        self.email = bleach.clean(self.email)
-
-        # Sanitize first name
-        self.first_name = bleach.clean(self.first_name)
-
-        # Sanitize last name
-        self.last_name = bleach.clean(self.last_name)
-
-        # Save
-        super(User, self).save(*args, **kwargs)
+User = typing.NewType('User', User)

@@ -16,13 +16,11 @@
   <div id="app" class="container mt-5">
     <div class="row justify-content-center">
       <div class="col-12 text-center mb-4">
-        <!-- Service Icon -->
         <img src="https://placehold.jp/128x128.png" alt="ダミーアイコン" class="rounded-circle shadow">
       </div>
     </div>
     <div class="row">
       <div class="col-12 col-md-6 col-lg-4 mx-auto">
-        <!-- Tablist for authentication -->
         <ul class="nav nav-tabs mb-4">
           <li class="nav-item flex-grow-1 text-center">
             <button class="nav-link w-100" type="button" :class="{'active': activeTab === 1}"
@@ -33,74 +31,49 @@
               @click="activeTab = 2">登録</button>
           </li>
         </ul>
-
-        <!-- Tablist contents -->
         <div class="tab-content">
-
-          <!-- Signin Form -->
           <div class="tab-pane fade" :class="{'show active': activeTab === 1}" id="tab1" role="tabpanel">
             <form @submit.prevent="onSignin">
-              <!-- for userSigninForm.username -->
               <div class="mb-3">
                 <label class="form-label" for="signin-username">ユーザー名</label>
-                <input class="form-control shadow-sm" id="signin-username" type="text"
-                  v-model="userSigninForm.username" required />
+                <input class="form-control shadow-sm" id="signin-username" type="text" v-model="userSigninForm.username"
+                  required />
               </div>
-
-              <!-- for userSigninForm.password -->
               <div class="mb-3">
                 <label class="form-label" for="signin-password">パスワード</label>
                 <input class="form-control shadow-sm" id="signin-password" type="password"
                   v-model="userSigninForm.password" required />
               </div>
-
-              <!-- submit -->
               <button type="submit" class="btn btn-primary w-100" :disabled="isLoading">認証</button>
             </form>
           </div>
-
-          <!-- Signup Form -->
           <div class="tab-pane fade" :class="{'show active': activeTab === 2}" id="tab2" role="tabpanel">
             <form @submit.prevent="onSignup">
-              <!-- for userSignupForm.username -->
               <div class="mb-3">
                 <label class="form-label" for="signup-username">ユーザー名</label>
                 <input class="form-control shadow-sm" id="signup-username" type="text"
                   v-model="userSignupForm.username" required />
               </div>
-
-              <!-- for userSignupForm.password -->
               <div class="mb-3">
                 <label class="form-label" for="signup-password">パスワード</label>
                 <input class="form-control shadow-sm" id="signup-password" type="password"
                   v-model="userSignupForm.password" required />
               </div>
-
-              <!-- submit -->
               <button type="submit" class="btn btn-primary w-100" :disabled="isLoading">登録</button>
             </form>
           </div>
-
         </div>
       </div>
     </div>
   </div>
-
   <script>
     const app = Vue.createApp({
-      // App state
       data() {
         return {
           isLoading: false,
           activeTab: 1,
-          userSigninForm: {
-            username: '',
-            password: '',
-          },
-          userSignupForm: {
-            username: '',
-            password: '',
-          },
+          userSigninForm: { username: '', password: '' },
+          userSignupForm: { username: '', password: '' },
         };
       },
       mounted() {
@@ -113,12 +86,19 @@
           try {
             this.isLoading = true;
             await axios.get("/api/user/csrftoken/");
-            await axios.post("/api/user/signin/", this.userSigninForm);
+            await axios.post("/api/user/signin/", {
+              username: this.userSigninForm.username,
+              password: this.userSigninForm.password,
+            }, {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
             window.location.href = "/user/";
           } catch (error) {
             console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
             alert({
-              400: "不正なリクエスト",
+              400: "ユーザーが既に登録されています",
               403: "権限がありません",
               404: "ユーザーが見つかりません",
               401: "ユーザー名またはパスワードが間違っています",
@@ -132,7 +112,10 @@
           try {
             this.isLoading = true;
             await axios.get("/api/user/csrftoken/");
-            await axios.post("/api/user/signup/", this.userSignupForm);
+            await axios.post("/api/user/signup/", {
+              username: this.userSignupForm.username,
+              password: this.userSignupForm.password,
+            });
             window.location.href = "/user/";
           } catch (error) {
             console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
@@ -148,7 +131,6 @@
         }
       },
     });
-    // Mount the app
     app.mount('#app');
   </script>
 </body>

@@ -1,11 +1,10 @@
 import uuid
 
 from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.request import Request
-from rest_framework import serializers
+from rest_framework.permissions import IsAuthenticated
 
 from .models import (
     Group,
@@ -154,14 +153,7 @@ class GroupMemberAPIView(APIView):
         # Get data from request
         serializer = GroupMemberSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        # Get validated data
-        user_id = request.data.get('user')
-        user = get_object_or_404(User, id=user_id)
-
-        # Validate data
-        serializer = GroupMemberSerializer(
-            serializer.save(group=group, user=user))
+        serializer.save(group=group)
 
         # Validate data
         return Response(serializer.data)
@@ -187,8 +179,7 @@ class GroupMemberOneAPIView(APIView):
             return Response(status=403)
 
         # Check if user is a member of any group
-        group_member = get_object_or_404(
-            GroupMember, id=member_id, group=group)
+        group_member = get_object_or_404(GroupMember, id=member_id, group=group)
 
         # Validate data
         serializer = GroupMemberSerializer(group_member)
@@ -208,12 +199,10 @@ class GroupMemberOneAPIView(APIView):
             return Response(status=403)
 
         # Check if user is a member of any group
-        group_member = get_object_or_404(
-            GroupMember, id=member_id, group=group)
+        group_member = get_object_or_404(GroupMember, id=member_id, group=group)
 
         # Get data from request
-        serializer = GroupMemberSerializer(
-            group_member, data=request.data, partial=True)
+        serializer = GroupMemberSerializer(group_member, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -239,8 +228,6 @@ class GroupMemberInvitableAPIView(APIView):
                 .filter(group=group, user=request.user)\
                 .exists():
             return Response(status=403)
-        
-        print(request.query_params.get('query'))
 
         # Get group members
         users = User.objects.exclude(groupmember__group=group)\
@@ -287,8 +274,7 @@ class GroupMessageAPIView(APIView):
         group = get_object_or_404(Group, id=group_id)
 
         # Get group-member
-        group_member = get_object_or_404(
-            GroupMember, group=group, user=request.user)
+        group_member = get_object_or_404(GroupMember, group=group, user=request.user)
 
         # Get data from request
         serializer = GroupMessageSerializer(data=request.data)
@@ -310,7 +296,8 @@ class GroupMessageOneAPIView(APIView):
     def get(self, request: Request, group_id: uuid.UUID, message_id: uuid.UUID):
 
         # Get group
-        group = get_object_or_404(Group, id=group_id)
+        group =\
+            get_object_or_404(Group, id=group_id)
 
         # Check if user is a member of any group
         if not GroupMember.objects\
@@ -319,8 +306,8 @@ class GroupMessageOneAPIView(APIView):
             return Response(status=403)
 
         # Check if user is a member of any group
-        group_message = get_object_or_404(
-            GroupMessage, id=message_id, group=group)
+        group_message =\
+            get_object_or_404(GroupMessage, id=message_id, group=group)
 
         # Validate data
         serializer = GroupMessageSerializer(group_message)
@@ -331,7 +318,8 @@ class GroupMessageOneAPIView(APIView):
     def patch(self, request: Request, group_id: uuid.UUID, message_id: uuid.UUID):
 
         # Get group
-        group = get_object_or_404(Group, id=group_id)
+        group =\
+            get_object_or_404(Group, id=group_id)
 
         # Check if user is a member of any group
         if not GroupMember.objects\
@@ -340,12 +328,11 @@ class GroupMessageOneAPIView(APIView):
             return Response(status=403)
 
         # Check if user is a member of any group
-        group_message = get_object_or_404(
-            GroupMessage, id=message_id, group=group)
+        group_message =\
+            get_object_or_404(GroupMessage, id=message_id, group=group)
 
         # Get data from request
-        serializer = GroupMessageSerializer(
-            group_message, data=request.data, partial=True)
+        serializer = GroupMessageSerializer(group_message, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 

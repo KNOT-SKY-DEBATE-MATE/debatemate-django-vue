@@ -44,6 +44,9 @@ class GroupMemberSerializer(serializers.ModelSerializer):
         # Model and fields
         model = GroupMember
 
+        # Extract field depth
+        depth = 1
+
         # Fields
         fields = [
             'id',

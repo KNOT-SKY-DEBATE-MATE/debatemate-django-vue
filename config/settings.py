@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,15 +21,30 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-swq*!oru2@#t*oxrry--u!^dbg&n=y$ke&dt7-l*h@wyo3fwh!'
+# Debug Mode
+# https://docs.djangoproject.com/en/5.1/ref/settings/#std:setting-DEBUG
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = [
-    '*',
-]
+
+# Django Secret Key
+# https://docs.djangoproject.com/en/5.1/ref/settings/#secret-key
+
+if not DEBUG:
+    SECRET_KEY = config('SECRET_KEY')
+else:
+    # fallback for development
+    SECRET_KEY = "nfg6CUJ1ySCnyFrCXmisrmxtwBuRZ5TsSeeb4fZVpK96ls3Qx2HQCSHI8cdUAt8te80"
+
+
+# Allowed Hosts
+# https://docs.djangoproject.com/en/5.1/ref/settings/#allowed-hosts
+
+if not DEBUG:
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS')
+else:
+    # fallback for development
+    ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -42,21 +58,33 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    # 'allauth',
+    # 'allauth.account',
+    # 'allauth.socialaccount',
+    # 'allauth.socialaccount.providers.google'
     'apps.user',
     'apps.group',
-    'apps.discussion',
+    'apps.meeting',
 ]
+
+
+# Authentication
+LOGIN_URL = '/user/signin'
+
+# https://docs.djangoproject.com/en/5.1/ref/settings/#login-redirect-url
+LOGIN_REDIRECT_URL = '/'
+
 
 # Rest framework
 # https://docs.djangoproject.com/en/5.1/ref/settings/#rest-framework
 
 REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
     ],
 }
 
@@ -74,7 +102,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
+# Root URL configuration
+# https://docs.djangoproject.com/en/5.1/ref/settings/#root-urlconf
+
 ROOT_URLCONF = 'config.urls'
+
 
 # CSRF
 # https://docs.djangoproject.com/en/5.1/ref/settings/#csrf-cookie-name
@@ -123,6 +156,11 @@ DATABASES = {
     }
 }
 
+# DATABASE_URL
+# https://docs.djangoproject.com/en/5.1/ref/settings/#std:setting-DATABASE_URL
+
+DATABASE_URL = config('DATABASE_URL', default='sqlite:///{}'.format(BASE_DIR / 'db.sqlite3'))
+
 
 # Password hashers
 # https://docs.djangoproject.com/en/5.1/ref/settings/#password-hashers
@@ -135,6 +173,54 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
     'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
 ]
+
+
+# Authentication backends
+# https://docs.djangoproject.com/en/5.1/topics/auth/customizing/#specifying-authentication-backends
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+
+# Authentication
+# https://django-allauth.readthedocs.io/en/latest/configuration.html
+
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+
+
+# Email
+# https://django-allauth.readthedocs.io/en/latest/configuration.html
+
+ACCOUNT_EMAIL_REQUIRED = True
+
+
+# Username
+# https://django-allauth.readthedocs.io/en/latest/configuration.html
+
+ACCOUNT_USERNAME_REQUIRED = False
+
+
+# allauth SocialAccount providers
+# https://django-allauth.readthedocs.io/en/latest/configuration.html#socialaccount-providers
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': config('GOOGLE_CLIENT_ID'),
+            'secret': config('GOOGLE_CLIENT_SECRET'),
+            'key': ''
+        },
+        'SCOPE': ['profile', 'email'],  # Googleから取得する情報
+        'AUTH_PARAMS': {'access_type': 'offline'},
+    }
+}
+
+# Django contrib.sites
+# Site ID (django.contrib.sites)
+
+SITE_ID = config('SITE_ID', default=1, cast=int)
 
 
 # Password validation
@@ -155,18 +241,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Custom user
-# https://docs.djangoproject.com/en/5.1/topics/auth/customizing/#substituting-a-custom-user-model
-
-AUTH_USER_MODEL = 'user.User'
-
 
 # Authentication backends
 # https://docs.djangoproject.com/en/5.1/topics/auth/customizing/#specifying-authentication-backends
-
-LOGIN_URL = '/user/authentication/'
-
-LOGIN_REDIRECT_URL = '/user/'
 
 
 # Internationalization
@@ -186,9 +263,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

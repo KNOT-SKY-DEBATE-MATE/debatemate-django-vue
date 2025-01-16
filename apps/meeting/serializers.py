@@ -1,19 +1,23 @@
 from rest_framework import serializers
 
 from .models import (
-    Discussion,
-    DiscussionMember,
-    DiscussionMessage,
-    DiscussionMessageAnnotation
+    Meeting,
+    MeetingMember,
+    MeetingMessage,
+    MeetingMessageAnnotation
 )
 
 
-class DiscussionSerializer(serializers.ModelSerializer):
+class MeetingSerializer(serializers.ModelSerializer):
+
+    """
+    Serializer for the Discussion model.
+    """
 
     class Meta:
 
         # The model associated with the serializer
-        model = Discussion
+        model = Meeting
 
         # The fields to be serialized
         fields = [
@@ -31,39 +35,47 @@ class DiscussionSerializer(serializers.ModelSerializer):
         }
 
 
-class DiscussionMemberSerializer(serializers.ModelSerializer):
+class MeetingMemberSerializer(serializers.ModelSerializer):
+
+    """
+    Serializer for the DiscussionMember model.
+    """
 
     class Meta:
 
         # The model associated with the serializer
-        model = DiscussionMember
+        model = MeetingMember
 
         # The fields to be serialized
         fields = [
             'id',
-            'discussion',
+            'meeting',
             'user',
         ]
 
         # Field-specific options
         extra_kwargs = {
             'id': {'read_only': True},
-            'discussion': {'read_only': True},
+            'meeting': {'read_only': True},
             'user': {'required': True},
         }
 
 
-class DiscussionMessageSerializer(serializers.ModelSerializer):
+class MeetingMessageSerializer(serializers.ModelSerializer):
+
+    """
+    Serializer for the DiscussionMessage model.
+    """
 
     class Meta:
 
         # The model associated with the serializer
-        model = DiscussionMessage
+        model = MeetingMessage
 
         # The fields to be serialized
         fields = [
             'id',
-            'discussion',
+            'meeting',
             'sender',
             'content',
             'created_at',
@@ -73,31 +85,31 @@ class DiscussionMessageSerializer(serializers.ModelSerializer):
         # Field-specific options
         extra_kwargs = {
             'id': {'read_only': True},
-            'discussion': {'required': True},
+            'meeting': {'required': True},
             'sender': {'required': True},
             'content': {'required': True},
         }
 
 
-class DiscussionMessageAnnotationSerializer(serializers.ModelSerializer):
+class MeetingMessageAnnotationSerializer(serializers.ModelSerializer):
+
+    """
+    Serializer for the DiscussionMessageAnnotation model.
+    """
 
     class Meta:
 
         # The model associated with the serializer
-        model = DiscussionMessageAnnotation
+        model = MeetingMessageAnnotation
 
         # The fields to be serialized
         fields = [
             'id',
             'message',
-            'sender',
-            'content',
         ]
 
         # Field-specific options
         extra_kwargs = {
             'id': {'read_only': True},
             'message': {'required': True},
-            'sender': {'required': True},
-            'content': {'required': True},
         }

@@ -2,7 +2,6 @@ import bleach
 import uuid
 
 from django.db import models
-from django.contrib.auth import get_user_model
 
 
 class Group(models.Model):
@@ -54,7 +53,7 @@ class GroupMember(models.Model):
 
     # User
     user = models.ForeignKey(
-        to=get_user_model(),
+        to='auth.User',
         on_delete=models.CASCADE, related_name='groupmember')
 
     # User nickname

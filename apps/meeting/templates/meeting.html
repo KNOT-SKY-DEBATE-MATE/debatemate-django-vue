@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DebateMate</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.0.0/dist/vue.global.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+  <div id="app" class="d-flex vh-100">
+    <div class="bg-light border-end p-3 d-flex flex-column" style="width: 300px;">
+      <div class="mb-4">
+        <h5 class="mb-1">Debate Name</h5>
+        <p class="text-muted mb-0">Group Name</p>
+      </div>
+      <div class="row row-cols-2 g-3 mb-4">
+        <div class="col">
+          <div class="border bg-secondary text-white d-flex justify-content-center align-items-center ratio ratio-1x1">Cam 1</div>
+        </div>
+        <div class="col">
+          <div class="border bg-secondary text-white d-flex justify-content-center align-items-center ratio ratio-1x1">Cam 2</div>
+        </div>
+        <div class="col">
+          <div class="border bg-secondary text-white d-flex justify-content-center align-items-center ratio ratio-1x1">Cam 3</div>
+        </div>
+        <div class="col">
+          <div class="border bg-secondary text-white d-flex justify-content-center align-items-center ratio ratio-1x1">Cam 4</div>
+        </div>
+      </div>
+      <div class="mt-auto">
+        <div class="d-flex align-items-center mb-3">
+          <img src="https://via.placeholder.com/40" alt="User Icon" class="rounded-circle me-2">
+          <span>User Name</span>
+        </div>
+        <div class="btn-group w-100" role="group">
+          <button type="button" class="btn btn-outline-primary"><span class="material-icons">mic_off</span></button>
+          <button type="button" class="btn btn-outline-primary"><span class="material-icons">closed_caption</span></button>
+          <button type="button" class="btn btn-outline-primary"><span class="material-icons">screen_share</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="flex-grow-1 d-flex flex-column">
+      <div class="flex-grow-1 overflow-auto p-3 d-flex flex-column-reverse bg-light">
+        <div class="mb-3">
+          <strong>User 1</strong>
+          <p class="mb-0">This is a message from User 1.</p>
+        </div>
+        <div class="mb-3">
+          <strong>User 2</strong>
+          <p class="mb-0">This is a message from User 2.</p>
+        </div>
+      </div>
+      <div class="border-top p-3 bg-white">
+        <form class="d-flex align-items-center">
+          <input type="text" class="form-control me-2" placeholder="Type your message...">
+          <button type="submit" class="btn btn-primary d-flex justify-content-center align-items-center">
+            <span class="material-icons">send</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

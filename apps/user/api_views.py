@@ -1,6 +1,6 @@
 import uuid
 
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import login, logout, authenticate
@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import serializers
 
 from .models import (
     User
@@ -39,32 +40,35 @@ class UserCSRFTokenAPIView(APIView):
         return Response(status=200)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class UserSigninAPIView(APIView):
 
     """
     View for user signin
     """
 
+    class PostInSerializer(serializers.Serializer):
+
+        # Define serializer
+        username = serializers.CharField(max_length=255, required=True)
+
+        # Define serializer
+        password = serializers.CharField(max_length=255, required=True)
+
     def post(self, request: Request):
 
         # Get data from request
-        serializer = UserSerializer(data=request.data)
+        serializer = self.PostInSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Get validated data
-        data = serializer.validated_data
-
         # Save user
-        user = authenticate(request=request, username=data['username'], password=data['password'])
+        user = authenticate(request=request, **serializer.validated_data)
 
         # Check if user exists
         if user is None:
             return Response(status=401)
 
         # Login user
-        if not user.is_authenticated:
-            logout(request)
-
         login(request, user)
 
         # Return token
@@ -83,23 +87,11 @@ class UserSignupAPIView(APIView):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Get validated data
-        data = serializer.validated_data
-
         # Check if user exists
-        if User.objects.filter(username=data['username']).exists():
-            return Response(status=401)
-
-        # Save user
-        user = User(username=data['username'])
-        user.set_password(raw_password=data['password'])
-        user.save()
+        user = User.objects.create_user(**serializer.validated_data)
 
         # Login user
         login(request, user)
-
-        # Validate data
-        serializer = UserSerializer(user)
 
         # Return token
         return Response(status=201)
@@ -119,7 +111,7 @@ class UserSignoutAPIView(APIView):
         logout(request)
 
         # Return response
-        return Response(status=200)
+        return Response(status=201)
 
 
 class UserOneAPIView(APIView):
