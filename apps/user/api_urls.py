@@ -27,11 +27,11 @@ urlpatterns = [
         view=UserSignoutAPIView.as_view(),
     ),
     path(
-        route='api/user/<uuid:user_id>/',
+        route='api/user/<int:user_id>/',
         view=UserOneAPIView.as_view(),
     ),
     path(
-        route='api/user/<uuid:user_id>/group/',
+        route='api/user/<int:user_id>/group/',
         view=UserGroupAPIView.as_view(),
     ),
 ]

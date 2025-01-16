@@ -79,10 +79,8 @@ class MeetingMember(models.Model):
         constraints = [
             # Unique constraint for meeting and user
             models.UniqueConstraint(
-                fields=['meeting', 'user'], name='unique_meeting_user'),
-            # Unique constraint for meeting and nickname
-            models.UniqueConstraint(
-                fields=['meeting', 'nickname'], name='unique_meeting_member_nickname')
+                fields=['meeting', 'member'], name='unique_meeting_user'),
+
         ]
 
     def save(self, *args, **kwargs):

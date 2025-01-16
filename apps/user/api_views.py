@@ -4,15 +4,13 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import serializers
 
-from .models import (
-    User
-)
 
 from .serializers import (
     UserSerializer
@@ -40,7 +38,7 @@ class UserCSRFTokenAPIView(APIView):
         return Response(status=200)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
+
 class UserSigninAPIView(APIView):
 
     """
