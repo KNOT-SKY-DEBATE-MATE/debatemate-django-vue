@@ -1,4 +1,4 @@
-import bleach
+import nh3
 import uuid
 
 from django.db import models
@@ -31,10 +31,10 @@ class Group(models.Model):
         """
 
         # Sanitize name
-        self.name = bleach.clean(self.name)
+        self.name = nh3.clean_text(self.name)
 
         # Sanitize description
-        self.description = bleach.clean(self.description)
+        self.description = nh3.clean_text(self.description)
 
         # Save
         super(Group, self).save(*args, **kwargs)
@@ -125,7 +125,7 @@ class GroupMessage(models.Model):
     def save(self, *args, **kwargs):
 
         # Sanitize content
-        self.content = bleach.clean(self.content)
+        self.content = nh3.clean_text(self.content)
 
         # Save
         super(GroupMessage, self).save(*args, **kwargs)

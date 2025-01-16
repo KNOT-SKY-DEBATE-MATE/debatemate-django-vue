@@ -1,4 +1,4 @@
-import bleach
+import nh3
 import uuid
 
 from django.db import models
@@ -41,10 +41,10 @@ class Meeting(models.Model):
     def save(self, *args, **kwargs):
 
         # Sanitize title
-        self.title = bleach.clean(self.title)
+        self.title = nh3.clean_text(self.title)
 
         # Sanitize description
-        self.description = bleach.clean(self.description)
+        self.description = nh3.clean_text(self.description)
 
         # Save
         super(Meeting, self).save(*args, **kwargs)
@@ -86,7 +86,7 @@ class MeetingMember(models.Model):
     def save(self, *args, **kwargs):
 
         # Sanitize nickname
-        self.nickname = bleach.clean(self.nickname)
+        self.nickname = nh3.clean_text(self.nickname)
 
         # Save
         super(MeetingMember, self).save(*args, **kwargs)
@@ -125,7 +125,7 @@ class MeetingMessage(models.Model):
     def save(self, *args, **kwargs):
 
         # Sanitize content
-        self.content = bleach.clean(self.content)
+        self.content = nh3.clean_text(self.content)
 
         # Save
         super(MeetingMessage, self).save(*args, **kwargs)
@@ -161,16 +161,16 @@ class MeetingMessageAnnotation(models.Model):
     def save(self, *args, **kwargs):
 
         # Sanitize summary
-        self.summary = bleach.clean(self.summary)
+        self.summary = nh3.clean_text(self.summary)
 
         # Sanitize suggestions
-        self.suggestions = bleach.clean(self.suggestions)
+        self.suggestions = nh3.clean_text(self.suggestions)
 
         # Sanitize criticism
-        self.criticism = bleach.clean(self.criticism)
+        self.criticism = nh3.clean_text(self.criticism)
 
         # Sanitize warning
-        self.warning = bleach.clean(self.warning)
+        self.warning = nh3.clean_text(self.warning)
 
         # Save
         super(MeetingMessageAnnotation, self).save(*args, **kwargs)

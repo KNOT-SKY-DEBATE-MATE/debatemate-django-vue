@@ -4,6 +4,7 @@ django-allauth
 django-nh3
 djangorestframework
 djangorestframework-simplejwt
+psycopg2
 certbot
 certbot-nginx
 gunicorn
