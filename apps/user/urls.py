@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 
 from .views import (
     UserAuthenticationView,
@@ -16,4 +16,9 @@ urlpatterns = [
         view=UserView.as_view(),
         name='user',
     ),
+    path(
+        route='user/',
+        view=include('allauth.urls'),
+        name='user.login',
+    )
 ]

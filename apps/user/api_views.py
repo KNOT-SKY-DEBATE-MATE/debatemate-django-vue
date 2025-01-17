@@ -62,7 +62,10 @@ class UserSigninAPIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         # Save user
-        user = authenticate(request=request, **serializer.validated_data)
+        user = authenticate(
+            request=request,
+            backend='django.contrib.auth.backends.ModelBackend',
+            **serializer.validated_data)
 
         # Check if user exists
         if user is None:

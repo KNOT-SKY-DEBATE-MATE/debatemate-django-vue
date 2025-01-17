@@ -195,7 +195,7 @@ AUTHENTICATION_BACKENDS = [
 # Authentication
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
 
 # Email
@@ -207,24 +207,23 @@ ACCOUNT_EMAIL_REQUIRED = True
 # Username
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 
-ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
 
 
 # allauth SocialAccount providers
 # https://django-allauth.readthedocs.io/en/latest/configuration.html#socialaccount-providers
 
-if not DEBUG: 
-    SOCIALACCOUNT_PROVIDERS = {
-        'google': {
-            'APP': {
-                'client_id': config('GOOGLE_CLIENT_ID'),
-                'secret': config('GOOGLE_CLIENT_SECRET'),
-                'key': ''
-            },
-            'SCOPE': ['profile', 'email'],  # Googleから取得する情報
-            'AUTH_PARAMS': {'access_type': 'offline'},
-        }
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': config('GOOGLE_CLIENT_ID'),
+            'secret': config('GOOGLE_CLIENT_SECRET'),
+            'key': ''
+        },
+        'SCOPE': ['profile', 'email'],  # Googleから取得する情報
+        'AUTH_PARAMS': {'access_type': 'offline'},
     }
+}
 
 # Django contrib.sites
 # Site ID (django.contrib.sites)
