@@ -180,6 +180,7 @@
           groupMeetingCreateForm: {
             title: "",      // 'name'から'title'に変更
             description: "",
+            group: "{{ group.id }}",
           },
           groupMemberList: [],
           groupInvitableList: [],
@@ -223,7 +224,8 @@
           try {
             this.isLoading = true;
             await axios.get("/api/user/csrftoken/");
-            this.groupMeetingList.push((await axios.post("/api/group/{{ group.id }}/meeting/", this.groupMeetingCreateForm)).data);
+            console.log(this.groupMeetingCreateForm);
+            this.groupMeetingList.push((await axios.post("/api/meeting/", this.groupMeetingCreateForm)).data);
             this.groupMeetingCreateFormIsOpen = false;
             this.groupMeetingCreateForm.title = '';
             this.groupMeetingCreateForm.description = '';
@@ -298,7 +300,7 @@
           }
         },
         onMoveToMeeting(meeting) {
-          window.location.href = `/group/{{ group.id }}/meeting/${meeting.id}/`;
+          window.location.href = `/meeting/${meeting.id}/`;
         },
       },
     });

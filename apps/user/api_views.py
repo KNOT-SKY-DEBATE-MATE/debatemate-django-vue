@@ -95,7 +95,7 @@ class UserSignupAPIView(APIView):
 
         # Login user
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-
+        
         # Return token
         return Response(status=201)
 

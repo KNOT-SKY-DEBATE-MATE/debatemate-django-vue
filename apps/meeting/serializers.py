@@ -39,7 +39,7 @@ class MeetingSerializer(serializers.ModelSerializer):
         # フィールド固有のオプション
         extra_kwargs = {
             'id': {'read_only': True},
-            'group': {'read_only': True},
+            'group': {'required': True},
             'title': {'required': True},
         }
 
