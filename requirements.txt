@@ -1,5 +1,5 @@
 python-decouple
-django[asyncio, argon2]
+django[argon2]
 django-allauth
 django-nh3
 djangorestframework
