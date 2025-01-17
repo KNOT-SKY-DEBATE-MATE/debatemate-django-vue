@@ -60,7 +60,7 @@ class GroupMember(models.Model):
     nickname = models.CharField(max_length=255)
 
     # Status of BAN
-    is_banned = models.BooleanField(default=False)
+    is_kicked = models.BooleanField(default=False)
 
     # Status of ADMIN
     is_admin = models.BooleanField(default=False)
@@ -84,6 +84,7 @@ class GroupMember(models.Model):
         # Indexes
         indexes = [
             models.Index(fields=['group', 'user']),
+            models.Index(fields=['group', 'nickname'])
         ]
 
 
