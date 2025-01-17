@@ -15,6 +15,7 @@ urlpatterns = [
          
     path('api/group/<uuid:group_id>/meeting/<uuid:meeting_id>/',
          MeetingOneAPIView.as_view(),
+        name='group.(id).meeting.(id)',
          name='meeting-detail'),
          
     path('api/group/<uuid:group_id>/meeting/<uuid:meeting_id>/member/',

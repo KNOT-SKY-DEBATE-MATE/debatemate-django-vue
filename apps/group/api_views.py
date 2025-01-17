@@ -319,8 +319,7 @@ class GroupMessageOneAPIView(APIView):
     def patch(self, request: Request, group_id: uuid.UUID, message_id: uuid.UUID):
 
         # Get group
-        group =\
-            get_object_or_404(Group, id=group_id)
+        group = get_object_or_404(Group, id=group_id)
 
         # Check if user is a member of any group
         if not GroupMember.objects\

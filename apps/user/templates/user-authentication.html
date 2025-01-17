@@ -93,16 +93,9 @@
         async onSignin() {
           try {
             this.isLoading = true;
-            await axios.get("/api/user/csrftoken/");
-            await axios.post("/api/user/signin/", {
-              username: this.userSigninForm.username,
-              password: this.userSigninForm.password,
-            }, {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            });
-            window.location.href = "/user/";
+            await axios.get("{% url 'api.user.csrftoken' %}");
+            await axios.post("{% url 'api.user.signin' %}", this.userSigninForm);
+            window.location.href = "{% url 'user' %}";
           } catch (error) {
             console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
             alert({
@@ -119,12 +112,9 @@
         async onSignup() {
           try {
             this.isLoading = true;
-            await axios.get("/api/user/csrftoken/");
-            await axios.post("/api/user/signup/", {
-              username: this.userSignupForm.username,
-              password: this.userSignupForm.password,
-            });
-            window.location.href = "/user/";
+            await axios.get("{% url 'api.user.csrftoken' %}");
+            await axios.post("{% url 'api.user.signup' %}", this.userSignupForm);
+            window.location.href = "{% url 'user' %}";
           } catch (error) {
             console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
             alert({

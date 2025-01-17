@@ -13,22 +13,27 @@ urlpatterns = [
     path(
         route='api/user/csrftoken/',
         view=UserCSRFTokenAPIView.as_view(),
+        name='api.user.csrftoken',
     ),
     path(
         route='api/user/signup/',
         view=UserSignupAPIView.as_view(),
+        name='api.user.signup',
     ),
     path(
         route='api/user/signin/',
         view=UserSigninAPIView.as_view(),
+        name='api.user.signin',
     ),
     path(
         route='api/user/signout/',
         view=UserSignoutAPIView.as_view(),
+        name='api.user.signout',
     ),
     path(
         route='api/user/<int:user_id>/',
         view=UserOneAPIView.as_view(),
+        name='api.user.(id)',
     ),
     path(
         route='api/user/<int:user_id>/group/',

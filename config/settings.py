@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-from datetime import timedelta
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -66,7 +65,7 @@ INSTALLED_APPS = [
 
 
 # Authentication
-LOGIN_URL = '/user/signin'
+LOGIN_URL = '/user/authentication/'
 
 # https://docs.djangoproject.com/en/5.1/ref/settings/#login-redirect-url
 LOGIN_REDIRECT_URL = '/'
@@ -147,16 +146,20 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-if not DEBUG:
+if not DEBUG and False:
 
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'ENGINE': 'django.db.backends.postgresql',
             'NAME': config('POSTGRES_DB'),
             'USER': config('POSTGRES_USER'),
             'PASSWORD': config('POSTGRES_PASSWORD'),
             'HOST': 'localhost',
             'PORT': config('POSTGRES_PORT'),
+            'CONN_MAX_AGE': 600,
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
         }
     }
 
@@ -207,7 +210,7 @@ ACCOUNT_EMAIL_REQUIRED = True
 # Username
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 
-ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_USERNAME_REQUIRED = True
 
 
 # allauth SocialAccount providers
