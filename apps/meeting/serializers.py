@@ -1,3 +1,5 @@
+# apps/meeting/serializers.py
+
 from rest_framework import serializers
 
 from .models import (
@@ -9,17 +11,15 @@ from .models import (
 
 
 class MeetingSerializer(serializers.ModelSerializer):
-
     """
-    Serializer for the Discussion model.
+    Meeting モデル用のシリアライザ
     """
 
     class Meta:
-
-        # The model associated with the serializer
+        # シリアライザに関連するモデル
         model = Meeting
 
-        # The fields to be serialized
+        # シリアライズするフィールド
         fields = [
             'id',
             'group',
@@ -27,7 +27,7 @@ class MeetingSerializer(serializers.ModelSerializer):
             'description',
         ]
 
-        # Field-specific options
+        # フィールド固有のオプション
         extra_kwargs = {
             'id': {'read_only': True},
             'group': {'read_only': True},
@@ -36,43 +36,39 @@ class MeetingSerializer(serializers.ModelSerializer):
 
 
 class MeetingMemberSerializer(serializers.ModelSerializer):
-
     """
-    Serializer for the DiscussionMember model.
+    MeetingMember モデル用のシリアライザ
     """
 
     class Meta:
-
-        # The model associated with the serializer
+        # シリアライザに関連するモデル
         model = MeetingMember
 
-        # The fields to be serialized
+        # シリアライズするフィールド
         fields = [
             'id',
             'meeting',
-            'user',
+            'member',
         ]
 
-        # Field-specific options
+        # フィールド固有のオプション
         extra_kwargs = {
             'id': {'read_only': True},
             'meeting': {'read_only': True},
-            'user': {'required': True},
+            'member': {'required': True},
         }
 
 
 class MeetingMessageSerializer(serializers.ModelSerializer):
-
     """
-    Serializer for the DiscussionMessage model.
+    MeetingMessage モデル用のシリアライザ
     """
 
     class Meta:
-
-        # The model associated with the serializer
+        # シリアライザに関連するモデル
         model = MeetingMessage
 
-        # The fields to be serialized
+        # シリアライズするフィールド
         fields = [
             'id',
             'meeting',
@@ -82,7 +78,7 @@ class MeetingMessageSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
 
-        # Field-specific options
+        # フィールド固有のオプション
         extra_kwargs = {
             'id': {'read_only': True},
             'meeting': {'required': True},
@@ -92,23 +88,21 @@ class MeetingMessageSerializer(serializers.ModelSerializer):
 
 
 class MeetingMessageAnnotationSerializer(serializers.ModelSerializer):
-
     """
-    Serializer for the DiscussionMessageAnnotation model.
+    MeetingMessageAnnotation モデル用のシリアライザ
     """
 
     class Meta:
-
-        # The model associated with the serializer
+        # シリアライザに関連するモデル
         model = MeetingMessageAnnotation
 
-        # The fields to be serialized
+        # シリアライズするフィールド
         fields = [
             'id',
             'message',
         ]
 
-        # Field-specific options
+        # フィールド固有のオプション
         extra_kwargs = {
             'id': {'read_only': True},
             'message': {'required': True},
