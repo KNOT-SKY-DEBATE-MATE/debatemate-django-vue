@@ -61,15 +61,15 @@ class MeetingAPIView(APIView):
         group = get_object_or_404(Group, id=group_id)
 
         # Check if user is a member of any group
-        if not GroupMember.objects\
-                .filter(group=group, user=request.user, is_admin=True)\
-                .exists():
-            return Response(status=403)
+        group_member = get_object_or_404(GroupMember, group=group, user=request.user, is_admin=True)
 
         # Get group
         serializer = MeetingSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(group=group)
+
+        # Get group members
+        MeetingMember.objects.create(meeting=serializer.instance, member=group_member, is_admin=True)
 
         # Return meeting
         return Response(serializer.data)
