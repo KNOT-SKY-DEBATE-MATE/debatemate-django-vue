@@ -17,7 +17,7 @@ urlpatterns = [
         name='user',
     ),
     path(
-        route='user/',
+        route='user/login/',
         view=include('allauth.urls'),
         name='user.login',
     )

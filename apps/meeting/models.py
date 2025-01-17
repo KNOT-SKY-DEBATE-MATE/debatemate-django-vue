@@ -56,28 +56,36 @@ class MeetingMember(models.Model):
     """
     Discussion Member Model
     """
+
+    # Unique ID
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     
+    # Fields
     meeting = models.ForeignKey(
-        Meeting,
-        on_delete=models.CASCADE,
-        related_name='members'
-    )
+        to=Meeting,
+        on_delete=models.CASCADE, related_name='meetingmember')
 
+    # Fields
     member = models.ForeignKey(
-        'auth.User',
-        on_delete=models.CASCADE,
-        related_name='meeting_members'
-    )
+        to='auth.User',
+        on_delete=models.CASCADE, related_name='meetingmember')
 
-    nickname = models.CharField(max_length=255)
+    # Fields
     is_admin = models.BooleanField(default=False)
+
+    # Fields
     is_kicked = models.BooleanField(default=False)
 
     class Meta:
+
+        # Model options
         verbose_name = 'Meeting Member'
         verbose_name_plural = 'Meeting Members'
+
+        # Constraints
         constraints = [
+
+            # Unique constraint for meeting and member
             models.UniqueConstraint(
                 fields=['meeting', 'member'],
                 name='unique_meeting_member'
@@ -85,9 +93,11 @@ class MeetingMember(models.Model):
         ]
 
     def save(self, *args, **kwargs):
-        if not self.nickname:
-            self.nickname = self.member.username
+        
+        # Sanitize nickname
         self.nickname = nh3.clean_text(self.nickname)
+
+        # Save
         super().save(*args, **kwargs)
 
 
@@ -126,7 +136,7 @@ class MeetingMessage(models.Model):
         # Sanitize content
         self.content = nh3.clean_text(self.content)
 
-        
+        # Sanitize nickname
         self.nickname = nh3.clean_text(self.nickname)
 
         # Save

@@ -2,6 +2,7 @@
 import uuid
 
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -19,12 +20,16 @@ from .serializers import (
     GroupMessageSerializer,
 )
 
-from apps.user.models import (
-    User
-)
-
 from apps.user.serializers import (
     UserSerializer
+)
+
+from apps.meeting.models import (
+    Meeting
+)
+
+from apps.meeting.serializers import (
+    MeetingSerializer
 )
 
 
@@ -121,7 +126,6 @@ class GroupMemberAPIView(APIView):
 
     def get(self, request: Request, group_id: uuid.UUID):
 
-        # Get group
         # Get group
         group = get_object_or_404(Group, id=group_id)
 
@@ -231,7 +235,7 @@ class GroupMemberInvitableAPIView(APIView):
             return Response(status=403)
 
         # Get group members
-        users = User.objects.exclude(groupmember__group=group)\
+        users = get_user_model().objects.exclude(groupmember__group=group)\
             .filter(username__icontains=request.query_params.get('query', ''))
 
         # Validate data
@@ -297,8 +301,7 @@ class GroupMessageOneAPIView(APIView):
     def get(self, request: Request, group_id: uuid.UUID, message_id: uuid.UUID):
 
         # Get group
-        group =\
-            get_object_or_404(Group, id=group_id)
+        group = get_object_or_404(Group, id=group_id)
 
         # Check if user is a member of any group
         if not GroupMember.objects\
@@ -307,8 +310,7 @@ class GroupMessageOneAPIView(APIView):
             return Response(status=403)
 
         # Check if user is a member of any group
-        group_message =\
-            get_object_or_404(GroupMessage, id=message_id, group=group)
+        group_message = GroupMessage.objects.get(id=message_id, group=group)
 
         # Validate data
         serializer = GroupMessageSerializer(group_message)
@@ -328,8 +330,7 @@ class GroupMessageOneAPIView(APIView):
             return Response(status=403)
 
         # Check if user is a member of any group
-        group_message =\
-            get_object_or_404(GroupMessage, id=message_id, group=group)
+        group_message = get_object_or_404(GroupMessage, id=message_id, group=group)
 
         # Get data from request
         serializer = GroupMessageSerializer(group_message, data=request.data, partial=True)
@@ -337,4 +338,33 @@ class GroupMessageOneAPIView(APIView):
         serializer.save()
 
         # Validate data
+        return Response(serializer.data)
+
+
+class GroupMeetingAPIView(APIView):
+
+    """
+    View for group meeting.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request, group_id: uuid.UUID):
+
+        # Get group
+        group = get_object_or_404(Group, id=group_id)
+
+        # Check if user is a member of any group
+        if not GroupMember.objects\
+                .filter(group=group, user=request.user)\
+                .exists():
+            return Response(status=403)
+
+        # Get group-meetings
+        meeting = Meeting.objects.filter(group=group)
+
+        # Validate data
+        serializer = MeetingSerializer(meeting, many=True)
+
+        # Return group
         return Response(serializer.data)

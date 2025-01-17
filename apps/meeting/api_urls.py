@@ -12,38 +12,38 @@ from .api_views import (
 
 urlpatterns = [
     path(
-        route='group/<uuid:group_id>/meeting/',
+        route='',
         view=MeetingAPIView.as_view(),
-        name='api.group.(id).meeting',
+        name='api.meeting',
     ),
     path(
-        route='group/<uuid:group_id>/meeting/<uuid:meeting_id>/',
+        route='<uuid:meeting_id>/',
         view=MeetingOneAPIView.as_view(),
-        name='api.group.(id).meeting.(id)',
+        name='api.meeting.(id)',
     ),
     path(
-        route='group/<uuid:group_id>/meeting/<uuid:meeting_id>/member/',
+        route='<uuid:meeting_id>/member/',
         view=MeetingMemberAPIView.as_view(),
-        name='api.group.(id).meeting.(id).member',
+        name='api.meeting.(id).member',
     ),
     path(
-        route='group/<uuid:group_id>/meeting/<uuid:meeting_id>/member/<int:member_id>/',
+        route='<uuid:meeting_id>/member/<int:member_id>/',
         view=MeetingMemberOneAPIView.as_view(),
-        name='api.group.(id).meeting.(id).member.(id)',
+        name='api.meeting.(id).member.(id)',
     ),
     path(
-        route='group/<uuid:group_id>/meeting/<uuid:meeting_id>/message/',
+        route='<uuid:meeting_id>/message/',
         view=MeetingMessageAPIView.as_view(),
-        name='api.group.(id).meeting.(id).message',
+        name='api.meeting.(id).message',
     ),
     path(
-        route='group/<uuid:group_id>/meeting/<uuid:meeting_id>/message/<int:message_id>/',
+        route='<uuid:meeting_id>/message/<int:message_id>/',
         view=MeetingMessageOneAPIView.as_view(),
-        name='api.group.(id).meeting.(id).message.(id)',
+        name='api.meeting.(id).message.(id)',
     ),
     path(
-        route='group/<uuid:group_id>/meeting/<uuid:meeting_id>/message/<int:message_id>/annotation/',
+        route='<uuid:meeting_id>/message/<int:message_id>/annotation/',
         view=MeetingMessageAnnotationAPIView.as_view(),
-        name='api.group.(id).meeting.(id).message.(id).annotation',
+        name='api.meeting.(id).message.(id).annotation',
     ),
 ]

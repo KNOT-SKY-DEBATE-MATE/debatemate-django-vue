@@ -29,7 +29,6 @@ class GroupSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'id': {'read_only': True},
             'name': {'required': True},
-            'description': {'required': False},
         }
 
 

@@ -28,8 +28,7 @@
           <i class="material-icons">add_comment</i>新しいミーティング
         </button>
         <div class="flex-grow-1 overflow-auto">
-          <div v-for="groupMeeting in groupMeetingList" :key="groupMeeting.id" 
-            class="card mb-2 cursor-pointer" 
+          <div v-for="groupMeeting in groupMeetingList" :key="groupMeeting.id" class="card mb-2 cursor-pointer"
             @click="selectMeeting(groupMeeting)">
             <div class="card-body">[[ groupMeeting.name ]]</div>
           </div>
@@ -131,7 +130,7 @@
 
     <!-- 新しいミーティング作成モーダル -->
     <div class="modal-backdrop fade show" v-if="groupMeetingCreateFormIsOpen"></div>
-    <div class="modal fade" id="createMeetingModal" tabindex="-1" aria-labelledby="createMeetingModalLabel" 
+    <div class="modal fade" id="createMeetingModal" tabindex="-1" aria-labelledby="createMeetingModalLabel"
       aria-hidden="true" :class="{'show d-block': groupMeetingCreateFormIsOpen}" role="dialog">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -143,20 +142,19 @@
           <div class="modal-body">
             <form @submit.prevent="onCreateMeeting">
               <div class="mb-3">
-                <label for="meetingTitle" class="form-label">ミーティング名</label>
-                <input type="text" class="form-control" id="meetingTitle" 
-                  v-model="groupMeetingCreateForm.title" required>
+                <label for="meeting-title" class="form-label">ミーティング名</label>
+                <input type="text" class="form-control" id="meeting-title" v-model="groupMeetingCreateForm.title"
+                  required>
               </div>
               <div class="mb-3">
-                <label for="meetingDescription" class="form-label">説明</label>
-                <textarea class="form-control" id="meetingDescription" rows="3"
+                <label for="meeting-description" class="form-label">説明</label>
+                <textarea class="form-control" id="meeting-description" rows="3"
                   v-model="groupMeetingCreateForm.description"></textarea>
               </div>
               <div class="d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-secondary" 
+                <button type="button" class="btn btn-secondary"
                   @click="groupMeetingCreateFormIsOpen = false">キャンセル</button>
-                <button type="submit" class="btn btn-primary d-flex align-items-center gap-2" 
-                  :disabled="isLoading">
+                <button type="submit" class="btn btn-primary d-flex align-items-center gap-2" :disabled="isLoading">
                   <i class="material-icons">add_comment</i>作成
                 </button>
               </div>
@@ -189,8 +187,6 @@
           groupInviteForm: {
             query: "",
           },
-          selectedMeeting: null, // 選択された会議の詳細を保存
-          meetingDetailModalOpen: false // 会議詳細モーダルの表示状態
         };
       },
       async created() {
@@ -223,86 +219,24 @@
         axios.defaults.withCredentials = true;
       },
       methods: {
-        validateMeetingForm() {
-          const title = this.groupMeetingCreateForm.title.trim();
-          if (!title) {
-            alert("ミーティング名を入力してください");
-            return false;
-          }
-          if (title.length > 255) {
-            alert("ミーティング名は255文字以内で入力してください");
-            return false;
-          }
-          return true;
-        },
         async onCreateMeeting() {
-          console.log('Meeting Form Data:', this.groupMeetingCreateForm);
-          
           try {
             this.isLoading = true;
             await axios.get("/api/user/csrftoken/");
-            
-            const response = await axios.post(
-              `/api/group/{{ group.id }}/meeting/`, 
-              this.groupMeetingCreateForm
-            );
-            
-            this.groupMeetingList.push(response.data);
+            this.groupMeetingList.push((await axios.post("/api/group/{{ group.id }}/meeting/", this.groupMeetingCreateForm)).data);
             this.groupMeetingCreateFormIsOpen = false;
             this.groupMeetingCreateForm.title = '';
             this.groupMeetingCreateForm.description = '';
           } catch (error) {
-            // より詳細なエラーログ
-            console.error('Meeting Create Full Error:', {
-              status: error.response?.status,
-              data: error.response?.data,
-              headers: error.response?.headers,
-              message: error.message,
-              config: error.config
-            });
-
-            // エラーの詳細を表示
-            if (error.response) {
-              // サーバーからのレスポンスがある場合
-              console.error('Error Response Data:', error.response.data);
-              console.error('Error Response Status:', error.response.status);
-              console.error('Error Response Headers:', error.response.headers);
-            } else if (error.request) {
-              // リクエストは送信されたが、レスポンスがない場合
-              console.error('Error Request:', error.request);
-            } else {
-              // エラーを引き起こした何かがある場合
-              console.error('Error Message:', error.message);
-            }
-
-            const errorMessage = error.response?.data?.error || 
-              {
-                400: "ミーティング名が不正です",
-                403: "権限がありません",
-                404: "グループが見つかりません",
-                500: "予期せぬエラーが発生しました",
-              }[error.response?.status] || 
-              "不明なエラーが発生しました。サイト管理者にお問い合わせください";
-            
-            alert(errorMessage);
+            console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
+            alert({
+              400: "ミーティング名が無効",
+              403: "権限がありません",
+              404: "グループが見つかりません",
+              500: "予期せぬエラーが発生しました",
+            }[error.response.status] || "不明なエラーが発生しました。サイト管理者にお問い合わせください");
           } finally {
             this.isLoading = false;
-          }
-        },
-        selectMeeting(meeting) {
-          // 選択された会議の詳細を取得または表示するロジック
-          try {
-            // 会議の詳細を取得するAPIコール
-            // 例: await axios.get(`/api/meeting/${meeting.id}/`);
-            
-            // 会議の詳細を表示するモーダルやコンポーネントを開く
-            // this.selectedMeeting = meeting;
-            // this.meetingDetailModalOpen = true;
-            
-            console.log('選択された会議:', meeting);
-          } catch (error) {
-            console.error('会議詳細の取得エラー:', error);
-            alert('会議の詳細を取得できませんでした');
           }
         },
         async onCreateMessage() {
@@ -348,10 +282,7 @@
           try {
             this.isLoading = true;
             await axios.get("/api/user/csrftoken/");
-            this.groupMemberList.push((await axios.post("/api/group/{{ group.id }}/member/", {
-              user: user.id,
-              nickname: user.username,
-            })).data);
+            this.groupMemberList.push((await axios.post("/api/group/{{ group.id }}/member/", { user: user.id })).data);
             this.groupInviteForm.query = "";
             this.groupInvitableList = (await axios.get("/api/group/{{ group.id }}/member/invitable/", this.groupInviteForm)).data;
           } catch (error) {
@@ -365,6 +296,9 @@
           } finally {
             this.isLoading = false;
           }
+        },
+        onMoveToMeeting(meeting) {
+          window.location.href = `/group/{{ group.id }}/meeting/${meeting.id}/`;
         },
       },
     });

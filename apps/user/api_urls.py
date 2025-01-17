@@ -11,32 +11,32 @@ from .api_views import (
 
 urlpatterns = [
     path(
-        route='api/user/csrftoken/',
+        route='csrftoken/',
         view=UserCSRFTokenAPIView.as_view(),
         name='api.user.csrftoken',
     ),
     path(
-        route='api/user/signup/',
+        route='signup/',
         view=UserSignupAPIView.as_view(),
         name='api.user.signup',
     ),
     path(
-        route='api/user/signin/',
+        route='signin/',
         view=UserSigninAPIView.as_view(),
         name='api.user.signin',
     ),
     path(
-        route='api/user/signout/',
+        route='signout/',
         view=UserSignoutAPIView.as_view(),
         name='api.user.signout',
     ),
     path(
-        route='api/user/<int:user_id>/',
+        route='<int:user_id>/',
         view=UserOneAPIView.as_view(),
         name='api.user.(id)',
     ),
     path(
-        route='api/user/<int:user_id>/group/',
+        route='<int:user_id>/group/',
         view=UserGroupAPIView.as_view(),
     ),
 ]

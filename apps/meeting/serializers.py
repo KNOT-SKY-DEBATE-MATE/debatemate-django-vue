@@ -25,6 +25,9 @@ class MeetingSerializer(serializers.ModelSerializer):
         # シリアライザに関連するモデル
         model = Meeting
 
+        # シリアライズする深さ
+        depth = 1
+
         # シリアライズするフィールド
         fields = [
             'id',

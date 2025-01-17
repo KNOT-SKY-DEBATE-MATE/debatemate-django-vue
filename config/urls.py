@@ -19,27 +19,27 @@ from django.urls import path, include
 
 urlpatterns = [
     path(
-        route='',
+        route='user/',
         view=include('apps.user.urls'),
     ),
     path(
-        route='',
+        route='api/user/',
         view=include('apps.user.api_urls'),
     ),
     path(
-        route='',
+        route='group/',
         view=include('apps.group.urls'),
     ),
     path(
-        route='',
+        route='api/group/',
         view=include('apps.group.api_urls'),
     ),
     path(
-        route='',
+        route='meeting/',
         view=include('apps.meeting.urls'),
     ),
     path(
-        route='',
+        route='api/meeting/',
         view=include('apps.meeting.api_urls'),
     ),
 ]
