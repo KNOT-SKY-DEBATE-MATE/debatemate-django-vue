@@ -1,0 +1,29 @@
+services:
+  django:
+    build: .                                  # カレントディレクトリのDockerfileを使ってDjangoのイメージをビルド
+    container_name: knotsky_django            # Djangoコンテナの名前
+    #image: knotsky-django-app:latest         # ビルド時に作成されるイメージ名
+    ports:
+      - "8000:8000"                          # ホストの8000ポートをコンテナの8000ポートにマッピング
+    volumes:
+      - ./:/app                              # ローカルのプロジェクトディレクトリーをコンテナにマウント
+    environment:
+      SECRET_KEY: "nfg6CUJ1ySCnyFrCXmisrmxtwBuRZ5TsSeeb4fZVpK96ls3Qx2HQCSHI8cdUAt8te80"  # 環境変数としてSECRET_KEYを渡す
+    env_file:
+      - .env  # 環境変数を`.env`ファイルから読み込む
+
+    # Djangoで管理画面にアクセスするためのコマンド
+    # 初回のみ以下を実行し、管理者アカウントとマイグレーションを作成。
+    # コメントアウトされている理由: 再実行時にエラーになるため、最初だけ有効にする。
+    #command: >
+    #   sh -c "
+    #   python manage.py makemigrations &&
+    #   python manage.py migrate &&
+    #   python manage.py createsuperuser --no-input --username admin --email admin@example.com &&
+    #   python manage.py runserver 0.0.0.0:8000
+    #   "
+
+    command: >
+      sh -c "
+      python manage.py runserver 0.0.0.0:8000
+      "
