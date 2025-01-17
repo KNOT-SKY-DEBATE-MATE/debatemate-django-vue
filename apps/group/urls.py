@@ -6,7 +6,7 @@ from .views import (
 
 urlpatterns = [
     path(
-        route='group/<uuid:group_id>/',
+        route='<uuid:group_id>/',
         view=GroupView.as_view(),
     ),
 ]
