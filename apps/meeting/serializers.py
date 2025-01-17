@@ -1,6 +1,7 @@
 # apps/meeting/serializers.py
 
 from rest_framework import serializers
+from django.contrib.auth.models import User
 
 from .models import (
     Meeting,
@@ -8,6 +9,11 @@ from .models import (
     MeetingMessage,
     MeetingMessageAnnotation
 )
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
 
 
 class MeetingSerializer(serializers.ModelSerializer):
@@ -39,7 +45,7 @@ class MeetingMemberSerializer(serializers.ModelSerializer):
     """
     MeetingMember モデル用のシリアライザ
     """
-
+    user = UserSerializer(source='member', read_only=True)
     class Meta:
         # シリアライザに関連するモデル
         model = MeetingMember
@@ -49,6 +55,10 @@ class MeetingMemberSerializer(serializers.ModelSerializer):
             'id',
             'meeting',
             'member',
+            'nickname',
+            'is_admin',
+            'is_kicked',
+            'user',
         ]
 
         # フィールド固有のオプション
@@ -56,19 +66,15 @@ class MeetingMemberSerializer(serializers.ModelSerializer):
             'id': {'read_only': True},
             'meeting': {'read_only': True},
             'member': {'required': True},
+            'is_admin': {'read_only': True},
         }
 
 
 class MeetingMessageSerializer(serializers.ModelSerializer):
-    """
-    MeetingMessage モデル用のシリアライザ
-    """
+    sender = MeetingMemberSerializer(read_only=True)
 
     class Meta:
-        # シリアライザに関連するモデル
         model = MeetingMessage
-
-        # シリアライズするフィールド
         fields = [
             'id',
             'meeting',
@@ -77,13 +83,11 @@ class MeetingMessageSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-
-        # フィールド固有のオプション
         extra_kwargs = {
             'id': {'read_only': True},
-            'meeting': {'required': True},
-            'sender': {'required': True},
-            'content': {'required': True},
+            'meeting': {'read_only': True},  # required=Trueを削除
+            'created_at': {'read_only': True},
+            'updated_at': {'read_only': True},
         }
 
 

@@ -50,46 +50,45 @@ class Meeting(models.Model):
         super(Meeting, self).save(*args, **kwargs)
 
 
+# MeetingMemberモデルの修正
+# apps/meeting/models.py
 class MeetingMember(models.Model):
-
     """
     Discussion Member Model
     """
-
-    # Fields
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    
     meeting = models.ForeignKey(
-        to=Meeting,
-        on_delete=models.CASCADE, related_name='meetingmember')
+        Meeting,
+        on_delete=models.CASCADE,
+        related_name='members'
+    )
 
-    # Fields
     member = models.ForeignKey(
-        to='auth.User',
-        on_delete=models.CASCADE, related_name='meetingmember')
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='meeting_members'
+    )
 
-    # Fields
+    nickname = models.CharField(max_length=255)
+    is_admin = models.BooleanField(default=False)
     is_kicked = models.BooleanField(default=False)
 
     class Meta:
-
-        # Model options
         verbose_name = 'Meeting Member'
         verbose_name_plural = 'Meeting Members'
-
-        # Constraints
         constraints = [
-            # Unique constraint for meeting and user
             models.UniqueConstraint(
-                fields=['meeting', 'member'], name='unique_meeting_user'),
-
+                fields=['meeting', 'member'],
+                name='unique_meeting_member'
+            ),
         ]
 
     def save(self, *args, **kwargs):
-
-        # Sanitize nickname
+        if not self.nickname:
+            self.nickname = self.member.username
         self.nickname = nh3.clean_text(self.nickname)
-
-        # Save
-        super(MeetingMember, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 class MeetingMessage(models.Model):
@@ -127,8 +126,13 @@ class MeetingMessage(models.Model):
         # Sanitize content
         self.content = nh3.clean_text(self.content)
 
+        
+        self.nickname = nh3.clean_text(self.nickname)
+
         # Save
         super(MeetingMessage, self).save(*args, **kwargs)
+     
+       
 
 
 class MeetingMessageAnnotation(models.Model):

@@ -1,28 +1,27 @@
 # apps/meeting/urls.py
-
+from .views import MeetingView
 from django.urls import path
-from .views import (
-    MeetingView,
-    MeetingListView,  # DiscussionListView から変更
-    MeetingDetailView,  # DiscussionDetailView から変更
+from .api_views import (
+    MeetingAPIView,
+    MeetingOneAPIView,
+    MeetingMemberAPIView,
+    MeetingMessageAPIView
 )
 
 urlpatterns = [
-    # 既存のパス
-    path(
-        route='group/<uuid:group_id>/meeting/<uuid:meeting_id>/',
-        view=MeetingView.as_view(),
-    ),
-    
-    # 追加するパス
-    path(
-        route='api/group/<uuid:group_id>/meeting/',
-        view=MeetingListView.as_view(),
-        name='meeting-list'
-    ),
-    path(
-        route='api/group/<uuid:group_id>/meeting/<uuid:meeting_id>/',
-        view=MeetingDetailView.as_view(),
-        name='meeting-detail'
-    ),
+    path('api/group/<uuid:group_id>/meeting/',
+         MeetingAPIView.as_view(),
+         name='meeting-list'),
+         
+    path('api/group/<uuid:group_id>/meeting/<uuid:meeting_id>/',
+         MeetingOneAPIView.as_view(),
+         name='meeting-detail'),
+         
+    path('api/group/<uuid:group_id>/meeting/<uuid:meeting_id>/member/',
+         MeetingMemberAPIView.as_view(),
+         name='meeting-member-list'),
+         
+    path('api/group/<uuid:group_id>/meeting/<uuid:meeting_id>/message/',
+         MeetingMessageAPIView.as_view(),
+         name='meeting-message-list'),
 ]
