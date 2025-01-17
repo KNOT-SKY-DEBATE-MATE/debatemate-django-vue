@@ -49,9 +49,6 @@ class Meeting(models.Model):
         # Save
         super(Meeting, self).save(*args, **kwargs)
 
-
-# MeetingMemberモデルの修正
-# apps/meeting/models.py
 class MeetingMember(models.Model):
     """
     Discussion Member Model
@@ -67,8 +64,11 @@ class MeetingMember(models.Model):
 
     # Fields
     member = models.ForeignKey(
-        to='auth.User',
+        to='group.GroupMember',
         on_delete=models.CASCADE, related_name='meetingmember')
+    
+    # Fields
+    nickname = models.CharField(max_length=255)
 
     # Fields
     is_admin = models.BooleanField(default=False)
@@ -90,6 +90,12 @@ class MeetingMember(models.Model):
                 fields=['meeting', 'member'],
                 name='unique_meeting_member'
             ),
+
+            # Unique constraint for meeting and nickname
+            models.UniqueConstraint(
+                fields=['meeting', 'nickname'],
+                name='unique_meeting_nickname'
+            )
         ]
 
     def save(self, *args, **kwargs):
