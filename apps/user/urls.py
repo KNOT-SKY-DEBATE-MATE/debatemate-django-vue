@@ -7,18 +7,17 @@ from .views import (
 
 urlpatterns = [
     path(
-        route='user/authentication/',
+        route='authentication/',
         view=UserAuthenticationView.as_view(),
         name='user.authentication',
     ),
     path(
-        route='user/',
+        route='',
         view=UserView.as_view(),
         name='user',
     ),
     path(
-        route='user/login/',
+        route='oauth2/',
         view=include('allauth.urls'),
-        name='user.login',
-    )
+    ),
 ]

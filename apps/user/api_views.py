@@ -94,7 +94,7 @@ class UserSignupAPIView(APIView):
         user = User.objects.create_user(**serializer.validated_data)
 
         # Login user
-        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend', backend='django.contrib.auth.backends.ModelBackend')
         
         # Return token
         return Response(status=201)
