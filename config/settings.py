@@ -66,7 +66,7 @@ INSTALLED_APPS = [
 
 
 # Authentication
-LOGIN_URL = '/user/signin'
+LOGIN_URL = '/user/authentication/'
 
 # https://docs.djangoproject.com/en/5.1/ref/settings/#login-redirect-url
 LOGIN_REDIRECT_URL = '/'
@@ -147,7 +147,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-if not DEBUG:
+if not DEBUG and False:
 
     DATABASES = {
         'default': {
@@ -207,7 +207,7 @@ ACCOUNT_EMAIL_REQUIRED = True
 # Username
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 
-ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_USERNAME_REQUIRED = True
 
 
 # allauth SocialAccount providers
