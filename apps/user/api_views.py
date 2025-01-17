@@ -1,3 +1,5 @@
+# apps/user/api_views.py
+
 import uuid
 
 from django.views.decorators.csrf import ensure_csrf_cookie
