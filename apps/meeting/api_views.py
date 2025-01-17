@@ -1,3 +1,4 @@
+# apps/meeting/api_views.py
 import requests
 import uuid
 
@@ -28,51 +29,50 @@ from .serializers import (
 
 
 class MeetingAPIView(APIView):
-
-    """
-    View for meeting.
-    """
-
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, group_id: uuid.UUID):
-
-        # Get group
         group = get_object_or_404(Group, id=group_id)
+        
+        if not GroupMember.objects.filter(
+            group=group, 
+            user=request.user
+        ).exists():
+            return Response(
+                {"error": "You are not a member of this group"}, 
+                status=403
+            )
 
-        # Check if user is a member of any group
-        if not GroupMember.objects\
-                .filter(group=group, user=request.user)\
-                .exists():
-            return Response(status=403)
-
-        # Get group members
         meetings = Meeting.objects.filter(group=group)
-
-        # Validate data
         serializer = MeetingSerializer(meetings, many=True)
-
-        # Return group
         return Response(serializer.data)
 
     def post(self, request: Request, group_id: uuid.UUID):
-
-        # Get group id
         group = get_object_or_404(Group, id=group_id)
+        
+        group_member = get_object_or_404(
+            GroupMember, 
+            group=group, 
+            user=request.user
+        )
 
-        # Check if user is a member of any group
-        group_member = get_object_or_404(GroupMember, group=group, user=request.user, is_admin=True)
-
-        # Get group
         serializer = MeetingSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(group=group)
+        if serializer.is_valid():
+            meeting = serializer.save(group=group)
+            
+            # 作成者をミーティングメンバーとして追加
+            MeetingMember.objects.create(
+                meeting=meeting,
+                member=request.user,
+                nickname=group_member.nickname,
+                is_admin=True
+            )
+            
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+    
 
-        # Get group members
-        MeetingMember.objects.create(meeting=serializer.instance, member=group_member, is_admin=True)
 
-        # Return meeting
-        return Response(serializer.data)
 
 
 class MeetingOneAPIView(APIView):
@@ -150,26 +150,40 @@ class MeetingMemberAPIView(APIView):
         return Response(serializer.data)
 
     def post(self, request: Request, group_id: uuid.UUID, meeting_id: uuid.UUID):
-
-        # Get meeting
+        # グループ取得
         group = get_object_or_404(Group, id=group_id)
+        
+        # 管理者権限チェック
+        if not GroupMember.objects.filter(
+            group=group, 
+            user=request.user,
+            is_admin=True  # 管理者権限が必要
+        ).exists():
+            return Response(
+                {"error": "You need admin rights to add members"}, 
+                status=403
+            )
 
-        # Check if user is a member of any group
-        if not GroupMember.objects\
-                .filter(group=group, user=request.user, is_admin=True)\
-                .exists():
-            return Response(status=403)
-
-        # Get meeting
+        # ミーティング取得
         meeting = get_object_or_404(Meeting, id=meeting_id, group=group)
-
-        # Get data from request
+        
+        # メンバー追加処理
         serializer = MeetingMemberSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(meeting=meeting)
-
-        # Return meeting
-        return Response(serializer.data)
+        if serializer.is_valid():
+            # グループメンバーからニックネームを取得
+            group_member = get_object_or_404(
+                GroupMember,
+                group=group,
+                user=serializer.validated_data['member']
+            )
+            
+            # ミーティングメンバーとして追加
+            meeting_member = serializer.save(
+                meeting=meeting,
+                nickname=group_member.nickname
+            )
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
 
 
 class MeetingMemberOneAPIView(APIView):
@@ -253,26 +267,38 @@ class MeetingMessageAPIView(APIView):
         return Response(serializer.data)
 
     def post(self, request: Request, group_id: uuid.UUID, meeting_id: uuid.UUID):
-
-        # Get meeting
+        # グループ取得
         group = get_object_or_404(Group, id=group_id)
+        
+        # グループメンバーチェック
+        if not GroupMember.objects.filter(
+            group=group, 
+            user=request.user
+        ).exists():
+            return Response(
+                {"error": "You are not a member of this group"}, 
+                status=403
+            )
 
-        # Check if user is a member of any group
-        if not GroupMember.objects\
-                .filter(group=group, user=request.user)\
-                .exists():
-            return Response(status=403)
-
-        # Get meeting
+        # ミーティング取得
         meeting = get_object_or_404(Meeting, id=meeting_id, group=group)
+        
+        # ミーティングメンバー取得
+        meeting_member = get_object_or_404(
+            MeetingMember, 
+            meeting=meeting, 
+            member=request.user
+        )
 
-        # Get data from request
+        # シリアライザ処理
         serializer = MeetingMessageSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(meeting=meeting)
-
-        # Return meeting
-        return Response(serializer.data)
+        if serializer.is_valid():
+            message = serializer.save(
+                meeting=meeting,
+                sender=meeting_member  # 送信者を設定
+            )
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
 
 
 class MeetingMessageOneAPIView(APIView):

@@ -1,5 +1,5 @@
 # apps/meeting/urls.py
-
+from .views import MeetingView
 from django.urls import path
 from .views import (
     MeetingView,

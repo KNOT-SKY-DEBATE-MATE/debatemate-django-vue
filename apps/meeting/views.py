@@ -1,3 +1,4 @@
+# apps/meeting/views.py
 import uuid
 
 from rest_framework import generics, status
