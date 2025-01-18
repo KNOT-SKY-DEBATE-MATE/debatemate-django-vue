@@ -19,4 +19,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # コンテナ起動時のデフォルトコマンド
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:$DJANGO_PORT $DJANGO_WSGI_MODULE:application"]
+CMD ["sh", "-c", "daphne --bind 0.0.0.0 --port $DJANGO_PORT $DJANGO_ASGI_MODULE:application"]

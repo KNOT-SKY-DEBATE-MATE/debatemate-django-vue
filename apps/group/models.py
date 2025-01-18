@@ -39,6 +39,11 @@ class Group(models.Model):
         # Save
         super(Group, self).save(*args, **kwargs)
 
+    def __str__(self):
+
+        # Return group identifier for websocket
+        return f'group.{self.id}'
+
 
 class GroupMember(models.Model):
 
@@ -87,6 +92,11 @@ class GroupMember(models.Model):
             models.Index(fields=['group', 'nickname'])
         ]
 
+    def __str__(self):
+
+        # Return group-member identifier for websocket
+        return f'group.{self.group.id}.member.{self.id}'
+
 
 class GroupMessage(models.Model):
 
@@ -116,7 +126,7 @@ class GroupMessage(models.Model):
         verbose_name_plural = 'Group Messages'
 
         # Ordering
-        ordering = ['-created_at']
+        ordering = ['created_at']
 
         # Indexes
         indexes = [
@@ -130,3 +140,8 @@ class GroupMessage(models.Model):
 
         # Save
         super(GroupMessage, self).save(*args, **kwargs)
+
+    def __str__(self):
+
+        # Return group-message identifier for websocket
+        return f'group.{self.group.id}.message.{self.id}'

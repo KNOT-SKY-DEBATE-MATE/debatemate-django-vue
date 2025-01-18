@@ -7,8 +7,6 @@ from .views import (
     UserView,
 )
 
-app_name = 'user'
-
 urlpatterns = [
     path(
         route='authentication/',

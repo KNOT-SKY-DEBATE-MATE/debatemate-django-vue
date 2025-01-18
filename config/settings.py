@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'rest_framework',
     'allauth',
     'allauth.account',
@@ -137,6 +138,12 @@ TEMPLATES = [
 # https://docs.djangoproject.com/en/5.1/ref/settings/#wsgi-application
 
 WSGI_APPLICATION = 'config.wsgi.application'
+
+
+# ASGI
+# https://docs.djangoproject.com/en/5.1/ref/settings/#asgi-application
+
+ASGI_APPLICATION = 'config.asgi.application'
 
 
 # Database
@@ -269,13 +276,65 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Django Redis
+# https://django-redis.readthedocs.io/en/latest/
+
+if not DEBUG:
+
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': "redis://{redis_host}:{redis_port}/{redis_db}".format(
+                redis_host=config('REDIS_HOST'),
+                redis_port=config('REDIS_PORT'),
+                redis_db=config('REDIS_DB'),
+            ),
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+        }
+    }
+
+else:
+
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-snowflake',
+        }
+    }
+
+
+if not DEBUG or True:
+
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [
+                    'redis://{redis_password}@{redis_host}:{redis_port}/{redis_db}'.format(
+                        redis_host=config('REDIS_HOST'),
+                        redis_port=config('REDIS_PORT'),
+                        redis_db=config('REDIS_DB'),
+                        redis_password=config('REDIS_PASSWORD'),
+                    ),
+                ],
+            },
+        },
+    }
+
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        },
+    }

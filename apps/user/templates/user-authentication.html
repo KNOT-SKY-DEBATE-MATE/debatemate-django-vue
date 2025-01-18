@@ -95,7 +95,7 @@
             this.isLoading = true;
             await axios.get("{% url 'api.user.csrftoken' %}");
             await axios.post("{% url 'api.user.signin' %}", this.userSigninForm);
-            window.location.href = "{% url 'user' %}";
+            window.location.href = "/user/";
           } catch (error) {
             console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
             alert({
@@ -114,7 +114,7 @@
             this.isLoading = true;
             await axios.get("{% url 'api.user.csrftoken' %}");
             await axios.post("{% url 'api.user.signup' %}", this.userSignupForm);
-            window.location.href = "{% url 'user' %}";
+            window.location.href = "/user/";
           } catch (error) {
             console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
             alert({

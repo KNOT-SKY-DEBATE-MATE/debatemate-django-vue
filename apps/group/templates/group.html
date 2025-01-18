@@ -284,7 +284,11 @@
           try {
             this.isLoading = true;
             await axios.get("/api/user/csrftoken/");
-            this.groupMemberList.push((await axios.post("/api/group/{{ group.id }}/member/", { user: user.id })).data);
+            this.groupMemberList.push((await axios.post("/api/group/{{ group.id }}/member/", {
+              user: user.id,
+              nickname: user.username,
+              group: "{{ group.id }}",
+            })).data);
             this.groupInviteForm.query = "";
             this.groupInvitableList = (await axios.get("/api/group/{{ group.id }}/member/invitable/", this.groupInviteForm)).data;
           } catch (error) {
@@ -305,6 +309,13 @@
       },
     });
     app.mount('#app');
+  </script>
+  <script>
+    websocket = new WebSocket("ws://" + window.location.host + "/ws/group/{{ group.id }}/message/");
+    websocket.onmessage = function (event) {
+      const data = JSON.parse(event.data);
+      app.groupMessageList.push(data);
+    };
   </script>
 </body>
 
