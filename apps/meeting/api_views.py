@@ -22,7 +22,8 @@ from .models import (
 )
 
 from .serializers import (
-    MeetingSerializer,
+    MeetingPostSerializer,
+    MeetingGetSerializer,
     MeetingMemberSerializer,
     MeetingMessageSerializer,
     MeetingMessageAnnotationSerializer,
@@ -39,7 +40,7 @@ class MeetingAPIView(APIView):
         meetings = Meeting.objects.all()
 
         # Validate data
-        serializer = MeetingSerializer(meetings, many=True)
+        serializer = MeetingGetSerializer(meetings, many=True)
 
         # Return group
         return Response(serializer.data)
@@ -47,7 +48,7 @@ class MeetingAPIView(APIView):
     def post(self, request: Request):
 
         # Get data from request
-        serializer = MeetingSerializer(data=request.data)
+        serializer = MeetingPostSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         # Save meeting
@@ -79,7 +80,7 @@ class MeetingOneAPIView(APIView):
             return Response(status=403)
 
         # Validate data
-        serializer = MeetingSerializer(meeting)
+        serializer = MeetingPostSerializer(meeting)
 
         # Return meeting
         return Response(serializer.data)
@@ -96,7 +97,7 @@ class MeetingOneAPIView(APIView):
             return Response(status=403)
 
         # Get data from request
-        serializer = MeetingSerializer(meeting, data=request.data, partial=True)
+        serializer = MeetingPostSerializer(meeting, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 

@@ -33,7 +33,7 @@ from apps.meeting.models import (
 )
 
 from apps.meeting.serializers import (
-    MeetingSerializer
+    MeetingPostSerializer
 )
 
 
@@ -386,7 +386,7 @@ class GroupMeetingAPIView(APIView):
         meeting = Meeting.objects.filter(group=group)
 
         # Validate data
-        serializer = MeetingSerializer(meeting, many=True)
+        serializer = MeetingPostSerializer(meeting, many=True)
 
         # Return group
         return Response(serializer.data)

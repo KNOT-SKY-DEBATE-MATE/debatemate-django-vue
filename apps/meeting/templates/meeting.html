@@ -34,7 +34,7 @@
       </div>
       <div class="mt-auto">
         <div class="d-flex align-items-center mb-3">
-          <img src="https://via.placeholder.com/40" alt="User Icon" class="rounded-circle me-2">
+          <img src="https://placehold.jp/40x40.png" alt="User Icon" class="rounded-circle me-2">
           <span>User Name</span>
         </div>
         <div class="btn-group w-100" role="group">
@@ -65,5 +65,55 @@
       </div>
     </div>
   </div>
+
+  <script>
+
+    const app = Vue.createApp({
+      delimiters: ['[[', ']]'],
+      deta(){
+        return {
+          isLoading: false,
+          meetingMessageList: [],
+          meetingMessageCreateForm: {
+            content: "",
+          },
+          meetingMemberList: [],
+          meetingInvitableList: [],
+          meetingInviteFormIsOpen: false,
+          meetingInviteForm: {
+            query: "",
+          },
+          
+        };
+
+      },
+
+
+      created() {
+
+      } ,
+      mounted() {
+        axios.defaults.xsrfCookieName = "csrftoken";
+        axios.defaults.xsrfHeaderName = "X-CSRFToken";
+        axios.defaults.withCredentials = true;
+      },
+
+      methods: {
+        async onCreateMesseage() {
+          
+        }
+
+      }
+    });
+
+   
+
+
+
+
+
+
+
+  </script>
 </body>
 </html>
