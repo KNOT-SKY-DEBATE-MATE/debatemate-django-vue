@@ -15,8 +15,24 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username']
 
+class MeetingGetSerializer(serializers.ModelSerializer):
+    class Meta:
+        # シリアライザに関連するモデル
+        model = Meeting
 
-class MeetingSerializer(serializers.ModelSerializer):
+        # シリアライズする深さ
+        depth = 1
+
+        # シリアライズするフィールド
+        fields = [
+            'id',
+            'group',
+            'title',
+            'description',
+        ]
+
+
+class MeetingPostSerializer(serializers.ModelSerializer):
     """
     Meeting モデル用のシリアライザ
     """
@@ -25,8 +41,6 @@ class MeetingSerializer(serializers.ModelSerializer):
         # シリアライザに関連するモデル
         model = Meeting
 
-        # シリアライズする深さ
-        depth = 1
 
         # シリアライズするフィールド
         fields = [

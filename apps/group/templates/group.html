@@ -29,7 +29,7 @@
         </button>
         <div class="flex-grow-1 overflow-auto">
           <div v-for="groupMeeting in groupMeetingList" :key="groupMeeting.id" class="card mb-2 cursor-pointer"
-            @click="selectMeeting(groupMeeting)">
+            @click="onMoveToMeeting(groupMeeting)">
             <div class="card-body">[[ groupMeeting.name ]]</div>
           </div>
         </div>
