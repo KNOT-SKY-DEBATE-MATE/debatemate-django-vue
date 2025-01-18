@@ -34,7 +34,7 @@ class GroupSerializer(serializers.ModelSerializer):
         }
 
 
-class GroupMemberSerializer(serializers.ModelSerializer):
+class GroupGetMemberSerializer(serializers.ModelSerializer):
 
     """
     Serializer for GroupMember model.
@@ -58,11 +58,30 @@ class GroupMemberSerializer(serializers.ModelSerializer):
             'is_admin',
         ]
 
+
+class GroupPostMemberSerializer(serializers.ModelSerializer):
+
+    """
+    Serializer for GroupMember model.
+    """
+
+    class Meta:
+
+        # Model and fields
+        model = GroupMember
+
+        # Fields
+        fields = [
+            'group',
+            'user',
+            'nickname',
+        ]
+
         # Extra kwargs
         extra_kwargs = {
-            'id': {'read_only': True},
-            'group': {'read_only': True},
             'user': {'required': True},
+            'group': {'required': True},
+            'nickname': {'required': True},
         }
 
 
