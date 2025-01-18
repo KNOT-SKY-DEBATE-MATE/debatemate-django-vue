@@ -14,4 +14,4 @@ gunicorn
 daphne
 cryptography
 requests
-channels
+
