@@ -121,11 +121,7 @@ CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            BASE_DIR / 'templates',
-            BASE_DIR / 'apps/user/templates',
-            BASE_DIR / 'apps/group/templates',
-        ],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -212,7 +208,7 @@ ACCOUNT_EMAIL_REQUIRED = True
 # Username
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 
-ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_USERNAME_REQUIRED = True
 
 
 # allauth SocialAccount providers
@@ -275,6 +271,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 
 # Default primary key field type

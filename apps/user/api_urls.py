@@ -38,5 +38,6 @@ urlpatterns = [
     path(
         route='<int:user_id>/group/',
         view=UserGroupAPIView.as_view(),
+        name='api.user.(id).group',
     ),
 ]
