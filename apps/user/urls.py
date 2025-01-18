@@ -1,9 +1,13 @@
 from django.urls import path, include
+from allauth.account.views import LoginView
+from allauth.socialaccount.views import SignupView, LoginCancelledView, LoginErrorView
 
 from .views import (
     UserAuthenticationView,
     UserView,
 )
+
+app_name = 'user'
 
 urlpatterns = [
     path(
@@ -15,9 +19,5 @@ urlpatterns = [
         route='',
         view=UserView.as_view(),
         name='user',
-    ),
-    path(
-        route='oauth2/',
-        view=include('allauth.urls'),
     ),
 ]
