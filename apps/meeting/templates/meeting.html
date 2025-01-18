@@ -1,119 +1,242 @@
 <!-- apps/meeting/templates/meeting.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DebateMate</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-  <script src="https://cdn.jsdelivr.net/npm/vue@3.0.0/dist/vue.global.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DebateMate</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.0.0/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </head>
-<body>
-  <div id="app" class="d-flex vh-100">
-    <div class="bg-light border-end p-3 d-flex flex-column" style="width: 300px;">
-      <div class="mb-4">
-        <h5 class="mb-1">Debate Name</h5>
-        <p class="text-muted mb-0">Group Name</p>
-      </div>
-      <div class="row row-cols-2 g-3 mb-4">
-        <div class="col">
-          <div class="border bg-secondary text-white d-flex justify-content-center align-items-center ratio ratio-1x1">Cam 1</div>
+<body class="vh-100">
+    <div id="app" class="d-flex h-100">
+        <!-- Left Sidebar -->
+        <div class="d-flex flex-column p-3 gap-3 bg-light border-end" style="width: 300px;">
+            <div class="d-flex align-items-center gap-2">
+                <h5 class="text-truncate mb-0">[[ meetingData.name ]]</h5>
+
+                <button class="btn btn-outline-secondary btn-sm" @click="openUserListWindow">
+                  <i class="material-icons">open_in_new</i>
+                </button>
+            </div>
+            <!-- User List with Cams -->
+            <div class="flex-grow-1 overflow-auto">
+                <div class="d-flex flex-column gap-3">
+                    <div v-for="member in meetingMemberList" :key="member.id" class="card">
+                        <div class="bg-secondary rounded" style="aspect-ratio: 16/9;">
+                            <div class="w-100 h-100 d-flex justify-content-center align-items-center text-white">
+                                CAM [[ member.nickname ]]
+                            </div>
+                        </div>
+                        <div class="card-body py-2 px-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="https://placehold.jp/30x30.png" alt="Member Icon" class="rounded-circle" width="30" height="30">
+                                    <span class="text-truncate">[[ member.nickname ]]</span>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <i class="material-icons" v-if="member.isMuted">mic_off</i>
+                                    <i class="material-icons" v-if="member.isVideoOff">videocam_off</i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Controls -->
+            <div class="mt-auto">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <img src="https://placehold.jp/40x40.png" alt="User Icon" class="rounded-circle" width="40" height="40">
+                    <h6 class="mb-0">[[ userData.username ]]</h6>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary flex-grow-1 d-flex justify-content-center align-items-center">
+                        <i class="material-icons">mic_off</i>
+                    </button>
+                    <button class="btn btn-outline-primary flex-grow-1 d-flex justify-content-center align-items-center">
+                        <i class="material-icons">videocam_off</i>
+                    </button>
+                    <button class="btn btn-outline-primary flex-grow-1 d-flex justify-content-center align-items-center">
+                        <i class="material-icons">screen_share</i>
+                    </button>
+                    <button class="btn btn-outline-primary flex-grow-1 d-flex justify-content-center align-items-center">
+                        <i class="material-icons">settings</i>
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="col">
-          <div class="border bg-secondary text-white d-flex justify-content-center align-items-center ratio ratio-1x1">Cam 2</div>
+
+        <!-- Main Chat Section -->
+        <div class="d-flex flex-column flex-grow-1">
+            <!-- Message List -->
+            <div id="message-list" class="flex-grow-1 d-flex flex-column overflow-y-scroll p-3 bg-light">
+                <div class="flex-grow-1 d-flex flex-column justify-content-end gap-2">
+                    <div v-for="message in meetingMessageList" :key="message.id" class="d-flex align-items-start gap-3">
+                        <img src="https://placehold.jp/40x40.png" alt="Avatar" class="rounded-circle" width="40" height="40">
+                        <div class="card w-75 p-2">
+                            <div class="d-flex justify-content-between">
+                                <h6>[[ message.sender.nickname ]]</h6>
+                                <small class="text-muted">[[ message.created_at ]]</small>
+                            </div>
+                            <p class="mb-0">[[ message.content ]]</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Input Section -->
+            <div class="d-flex align-items-center gap-2 p-3 border-top">
+                <input type="text" v-model="meetingMessageCreateForm.content" class="form-control" placeholder="メッセージを入力...">
+                <button class="btn btn-primary d-flex justify-content-center align-items-center" @click="onCreateMessage" :disabled="isLoading">
+                    <i class="material-icons">send</i>
+                </button>
+            </div>
         </div>
-        <div class="col">
-          <div class="border bg-secondary text-white d-flex justify-content-center align-items-center ratio ratio-1x1">Cam 3</div>
+
+        <!-- Right Sidebar -->
+        <div class="d-flex flex-column p-3 gap-3 bg-light border-start" style="width: 240px;">
+            <h5>ミーティング情報</h5>
+            <!-- Voice Recognition Status -->
+            <div class="border rounded p-2">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="material-icons">record_voice_over</i>
+                    <span>音声認識状態</span>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" v-model="voiceRecognitionEnabled">
+                    <label class="form-check-label">無効/有効</label>
+                </div>
+            </div>
+            <!-- Meeting Topic -->
+            <div class="border rounded p-2">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="material-icons">topic</i>
+                    <span>議題</span>
+                </div>
+                <p class="mb-0 small">[[ meetingData.topic ]]</p>
+            </div>
         </div>
-        <div class="col">
-          <div class="border bg-secondary text-white d-flex justify-content-center align-items-center ratio ratio-1x1">Cam 4</div>
+
+
+        <!-- User List Modal Window -->
+        <div v-if="userListWindowOpen" class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);">
+          <div class="modal-dialog modal-dialog-centered modal-lg">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <h5 class="modal-title">参加者一覧</h5>
+                      <button class="btn-close" @click="userListWindowOpen = false"></button>
+                  </div>
+                  <div class="modal-body">
+                      <div class="row g-3">
+                          <div class="col-md-6" v-for="member in meetingMemberList" :key="member.id">
+                              <div class="card">
+                                  <div class="bg-secondary rounded" style="aspect-ratio: 16/9;">
+                                      <div class="w-100 h-100 d-flex justify-content-center align-items-center text-white">
+                                          CAM [[ member.nickname ]]
+                                      </div>
+                                  </div>
+                                  <div class="card-body py-2 px-3">
+                                      <div class="d-flex justify-content-between align-items-center">
+                                          <div class="d-flex align-items-center gap-2">
+                                              <img src="https://placehold.jp/30x30.png" alt="Member Icon" class="rounded-circle" width="30" height="30">
+                                              <span class="text-truncate">[[ member.nickname ]]</span>
+                                          </div>
+                                          <div class="d-flex gap-1">
+                                              <i class="material-icons" v-if="member.isMuted">mic_off</i>
+                                              <i class="material-icons" v-if="member.isVideoOff">videocam_off</i>
+                                          </div>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="modal-footer">
+                      <button class="btn btn-secondary" @click="userListWindowOpen = false">閉じる</button>
+                  </div>
+              </div>
+          </div>
         </div>
-      </div>
-      <div class="mt-auto">
-        <div class="d-flex align-items-center mb-3">
-          <img src="https://placehold.jp/40x40.png" alt="User Icon" class="rounded-circle me-2">
-          <span>User Name</span>
-        </div>
-        <div class="btn-group w-100" role="group">
-          <button type="button" class="btn btn-outline-primary"><span class="material-icons">mic_off</span></button>
-          <button type="button" class="btn btn-outline-primary"><span class="material-icons">closed_caption</span></button>
-          <button type="button" class="btn btn-outline-primary"><span class="material-icons">screen_share</span></button>
-        </div>
-      </div>
+
     </div>
-    <div class="flex-grow-1 d-flex flex-column">
-      <div class="flex-grow-1 overflow-auto p-3 d-flex flex-column-reverse bg-light">
-        <div class="mb-3">
-          <strong>User 1</strong>
-          <p class="mb-0">This is a message from User 1.</p>
-        </div>
-        <div class="mb-3">
-          <strong>User 2</strong>
-          <p class="mb-0">This is a message from User 2.</p>
-        </div>
-      </div>
-      <div class="border-top p-3 bg-white">
-        <form class="d-flex align-items-center">
-          <input type="text" class="form-control me-2" placeholder="Type your message...">
-          <button type="submit" class="btn btn-primary d-flex justify-content-center align-items-center">
-            <span class="material-icons">send</span>
-          </button>
-        </form>
-      </div>
-    </div>
-  </div>
 
-  <script>
+    <script>
+        const app = Vue.createApp({
+            delimiters: ['[[', ']]'],
+            data() {
+                return {
+                    meetingId: "{{ meeting.id }}",
+                    isLoading: false,
+                    meetingMessageList: [],
+                    meetingMessageCreateForm: {
+                        content: "",
+                    },
+                    meetingMemberList: [
+                        { id: 1, nickname: "User 1", isMuted: true, isVideoOff: false },
+                        { id: 2, nickname: "User 2", isMuted: false, isVideoOff: true },
+                        { id: 3, nickname: "User 3", isMuted: false, isVideoOff: false },
+                        { id: 4, nickname: "User 4", isMuted: false, isVideoOff: false },
+                        { id: 5, nickname: "User 5", isMuted: false, isVideoOff: false },
+                        { id: 6, nickname: "User 6", isMuted: false, isVideoOff: false },
+                        { id: 7, nickname: "User 7", isMuted: false, isVideoOff: false },
+                        { id: 8, nickname: "User 8", isMuted: false, isVideoOff: false },
+                        { id: 9, nickname: "User 9", isMuted: false, isVideoOff: false },
+                    ],
+                    meetingData: {
+                        name: "Meeting Name",
+                        topic: "AIの発展における倫理的課題について"
+                    },
+                    userData: {
+                        username: "Username"
+                    },
+                    userListWindowOpen: false, 
+                    voiceRecognitionEnabled: false,
+                    userListWindow: null,
+                };
+            },
+            watch: {
+                // meetingMemberListの変更を監視して別ウィンドウに通知
+                meetingMemberList: {
+                    handler(newValue) {
+                        if (this.userListWindow && !this.userListWindow.closed) {
+                            this.userListWindow.postMessage({
+                                type: 'updateMembers',
+                                members: newValue
+                            }, '*');
+                        }
+                    },
+                    deep: true
+                }
+            },
+            mounted() {
+                axios.defaults.xsrfCookieName = "csrftoken";
+                axios.defaults.xsrfHeaderName = "X-CSRFToken";
+                axios.defaults.withCredentials = true;
+            },
+            methods: {
+                async onCreateMessage() {
+                    // Implementation for creating messages
+                },
 
-    const app = Vue.createApp({
-      delimiters: ['[[', ']]'],
-      deta(){
-        return {
-          isLoading: false,
-          meetingMessageList: [],
-          meetingMessageCreateForm: {
-            content: "",
-          },
-          meetingMemberList: [],
-          meetingInvitableList: [],
-          meetingInviteFormIsOpen: false,
-          meetingInviteForm: {
-            query: "",
-          },
-          
-        };
-
-      },
-
-
-      created() {
-
-      } ,
-      mounted() {
-        axios.defaults.xsrfCookieName = "csrftoken";
-        axios.defaults.xsrfHeaderName = "X-CSRFToken";
-        axios.defaults.withCredentials = true;
-      },
-
-      methods: {
-        async onCreateMesseage() {
-          
-        }
-
-      }
-    });
-
-   
-
-
-
-
-
-
-
-  </script>
+                openUserListWindow() {
+                    const width = 800;
+                    const height = 600;
+                    const left = (window.screen.width - width) / 2;
+                    const top = (window.screen.height - height) / 2;
+                    
+                    // URLにmeeting_idを含める
+                    this.userListWindow = window.open(
+                        `/meeting/userlist/${this.meetingId}/`,  // URLを修正
+                        'UserList',
+                        `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+                    );
+                }
+            }
+        });
+        app.mount('#app');
+    </script>
 </body>
 </html>

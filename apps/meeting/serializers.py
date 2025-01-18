@@ -62,7 +62,9 @@ class MeetingMemberSerializer(serializers.ModelSerializer):
     """
     MeetingMember モデル用のシリアライザ
     """
-    user = UserSerializer(source='member', read_only=True)
+    username = serializers.CharField(source='member.user.username', read_only=True)
+    user_id = serializers.IntegerField(source='member.user.id', read_only=True)
+
     class Meta:
         # シリアライザに関連するモデル
         model = MeetingMember
@@ -75,7 +77,8 @@ class MeetingMemberSerializer(serializers.ModelSerializer):
             'nickname',
             'is_admin',
             'is_kicked',
-            'user',
+            'username',
+            'user_id'
         ]
 
         # フィールド固有のオプション

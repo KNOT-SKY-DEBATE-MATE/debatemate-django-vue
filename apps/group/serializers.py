@@ -1,3 +1,5 @@
+# apps/group/serializers.py
+
 from rest_framework import serializers
 
 from .models import (
@@ -52,7 +54,7 @@ class GroupMemberSerializer(serializers.ModelSerializer):
             'group',
             'user',
             'nickname',
-            'is_banned',
+            'is_kicked',
             'is_admin',
         ]
 
