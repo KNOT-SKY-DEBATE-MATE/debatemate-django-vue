@@ -44,3 +44,6 @@ class MeetingView(LoginRequiredMixin, View):
             'meeting': meeting,
         })
 
+class UserListView(LoginRequiredMixin, View):
+    def get(self, request, meeting_id):
+        return render(request, 'meeting_userlist.html', {'meeting_id': meeting_id})

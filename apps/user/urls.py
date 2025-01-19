@@ -7,6 +7,7 @@ from .views import (
     UserView,
 )
 
+
 urlpatterns = [
     path(
         route='authentication/',
