@@ -5,4 +5,4 @@ RUN apt-get update && apt-get install -y libpq-dev gcc && rm -rf /var/lib/apt/li
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-CMD ["sh", "-c", "daphne --bind 0.0.0.0 --port $DJANGO_PORT $DJANGO_ASGI_MODULE:application"]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:$DJANGO_PORT $DJANGO_ASGI_MODULE:application"]
