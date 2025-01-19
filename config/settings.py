@@ -286,3 +286,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #         },
 #     }
 # }
+
+
+# Websocket backend settings
+
+WEBSOCKET_URL = 'http://{websocket_host}:{websocket_port}/'.format(
+    websocket_host=config('WEBSOCKET_HOST'),
+    websocket_port=config('WEBSOCKET_PORT'),
+)
+

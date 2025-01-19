@@ -37,10 +37,10 @@ class UserSigninAPIView(APIView):
 
     class PostSerializer(serializers.Serializer):
 
-        # Define serializer
+        # Username for user signin
         username = serializers.CharField(max_length=255, required=True)
 
-        # Define serializer
+        # Password for user signin
         password = serializers.CharField(max_length=255, required=True)
 
     def post(self, request: Request):
@@ -50,15 +50,19 @@ class UserSigninAPIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         # Save user
-        user = authenticate(request=request, **serializer.validated_data,
-            backend='django.contrib.auth.backends.ModelBackend')
+        user = authenticate(
+            request=request,
+            username=serializer.validated_data['username'],
+            password=serializer.validated_data['password'],
+            backend='django.contrib.auth.backends.ModelBackend'
+        )
 
         # Check if user exists
         if user is None:
             return Response(status=401)
 
         # Login user
-        login(request, user)
+        login(request=request, user=user, backend='django.contrib.auth.backends.ModelBackend')
 
         # Return token
         return Response(status=201)
@@ -72,10 +76,10 @@ class UserSignupAPIView(APIView):
 
     class PostSerializer(serializers.Serializer):
 
-        # Define serializer
+        # Username for user signup
         username = serializers.CharField(max_length=255, required=True)
 
-        # Define serializer
+        # Password for user signup
         password = serializers.CharField(max_length=255, required=True)
 
     def post(self, request: Request):
@@ -88,13 +92,13 @@ class UserSignupAPIView(APIView):
         if User.objects\
                 .filter(username=serializer.validated_data['username'])\
                 .exists():
-            return Response(status=401)
+            return Response(status=403)
 
         # Check if user exists
         user = User.objects.create_user(**serializer.validated_data)
 
         # Login user
-        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        login(request=request, user=user, backend='django.contrib.auth.backends.ModelBackend')
         
         # Return token
         return Response(status=201)

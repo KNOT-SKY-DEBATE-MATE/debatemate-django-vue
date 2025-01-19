@@ -1,11 +1,13 @@
+import requests
+
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import serializers
 
 from .models import (
     Group,
@@ -13,8 +15,22 @@ from .models import (
     GroupMessage,
 )
 
+from .serializers import (
+    GroupSerializer,
+    GroupMemberSerializer,
+    GroupMessageSerializer,
+)
+
 from apps.meeting.models import (
     Meeting
+)
+
+from apps.meeting.serializers import (
+    MeetingSerializer
+)
+
+from apps.user.serializers import (
+    UserSerializer
 )
 
 
@@ -26,12 +42,8 @@ class GroupAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    class GetOutSerializer(serializers.ModelSerializer):
-
-        # Serializer settings
-        class Meta:
-            model = Group
-            fields = ['id', 'name', 'description']
+    class GetOutSerializer(GroupSerializer):
+        pass
 
     def get(self, request: Request):
 
@@ -44,18 +56,14 @@ class GroupAPIView(APIView):
         # Return groups
         return Response(serializer.data)
 
-    class PostSerializer(serializers.ModelSerializer):
+    class PostSerializer(GroupSerializer):
+        pass
 
-        class Meta:
-            model = Group
-            fields = ['name', 'description']
+    class PostOutSerializer(GroupSerializer):
 
-    class PostOutSerializer(serializers.ModelSerializer):
-
-
-        class Meta:
-            model = Group
-            fields = '__all__'
+        # Serializer settings
+        class Meta(GroupSerializer.Meta):
+            depth = 1
 
     def post(self, request: Request):
 
@@ -70,7 +78,7 @@ class GroupAPIView(APIView):
             group = serializer.save()
 
             # Add first user to group
-            group_member = GroupMember.objects\
+            GroupMember.objects\
                 .create(group=group, user=request.user, nickname=request.user.username, is_admin=True)
 
         # Validate data
@@ -88,12 +96,11 @@ class GroupOneAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    class GetOutSerializer(serializers.ModelSerializer):
+    class GetOutSerializer(GroupSerializer):
 
         # Serializer settings
-        class Meta:
-            model = Group
-            fields = '__all__'
+        class Meta(GroupSerializer.Meta):
+            depth = 1
 
     def get(self, request: Request, group_id):
 
@@ -112,19 +119,17 @@ class GroupOneAPIView(APIView):
         # Return group
         return Response(out_serializer.data)
 
-    class PatchSerializer(serializers.ModelSerializer):
+    class PatchSerializer(GroupSerializer):
 
         # Serializer settings
-        class Meta:
-            model = Group
+        class Meta(GroupSerializer.Meta):
             fields = ['name', 'description']
 
-    class PatchOutSerializer(serializers.ModelSerializer):
+    class PatchOutSerializer(GroupSerializer):
 
         # Serializer settings
-        class Meta:
-            model = Group
-            fields = '__all__'
+        class Meta(GroupSerializer.Meta):
+            depth = 1
 
     def patch(self, request: Request, group_id):
 
@@ -148,6 +153,14 @@ class GroupOneAPIView(APIView):
         # Validate data
         out_serializer = self.PatchOutSerializer(group_member)
 
+        try:
+            # Post event to websocket server
+            response = requests.post(
+                settings.WEBSOCKET_URL + f'on/group/{group.id}/update/')
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            pass
+
         # Return group
         return Response(out_serializer.data)
 
@@ -160,13 +173,11 @@ class GroupMemberAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    class GetOutSerializer(serializers.ModelSerializer):
+    class GetOutSerializer(GroupMemberSerializer):
 
         # Serializer settings
-        class Meta:
-            model = GroupMember
+        class Meta(GroupMemberSerializer.Meta):
             depth = 1
-            fields = '__all__'
 
     def get(self, request: Request, group_id):
 
@@ -188,19 +199,17 @@ class GroupMemberAPIView(APIView):
         # Return group
         return Response(out_serializer.data)
 
-    class PostSerializer(serializers.ModelSerializer):
+    class PostSerializer(GroupMemberSerializer):
 
         # Serializer settings
-        class Meta:
-            model = GroupMember
+        class Meta(GroupMemberSerializer.Meta):
             fields = ['user', 'nickname']
 
-    class PostOutSerializer(serializers.ModelSerializer):
+    class PostOutSerializer(GroupMemberSerializer):
 
         # Serializer settings
-        class Meta:
-            model = GroupMember
-            fields = '__all__'
+        class Meta(GroupMemberSerializer.Meta):
+            depth = 1
 
     def post(self, request: Request, group_id):
 
@@ -223,6 +232,14 @@ class GroupMemberAPIView(APIView):
         # Validate data
         out_serializer = self.PostOutSerializer(group_member)
 
+        # Post event to websocket server
+        try:
+            response = requests.post(
+                settings.WEBSOCKET_URL + f'on/group/{group.id}/member.invite/')
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            pass
+
         # Return group
         return Response(out_serializer.data)
 
@@ -235,12 +252,11 @@ class GroupMemberOneAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    class GetOutSerializer(serializers.ModelSerializer):
+    class GetOutSerializer(GroupMemberSerializer):
 
         # Serializer settings
-        class Meta:
-            model = GroupMember
-            fields = '__all__'
+        class Meta(GroupMemberSerializer.Meta):
+            depth = 1
 
     def get(self, request: Request, group_id, member_id):
 
@@ -263,19 +279,17 @@ class GroupMemberOneAPIView(APIView):
         # Return group
         return Response(out_serializer.data)
 
-    class PatchSerializer(serializers.ModelSerializer):
+    class PatchSerializer(GroupMemberSerializer):
 
         # Serializer settings
-        class Meta:
-            model = GroupMember
+        class Meta(GroupMemberSerializer.Meta):
             fields = ['nickname']
 
-    class PatchOutSerializer(serializers.ModelSerializer):
+    class PatchOutSerializer(GroupMemberSerializer):
 
         # Serializer settings
-        class Meta:
-            model = GroupMember
-            fields = '__all__'
+        class Meta(GroupMemberSerializer.Meta):
+            depth = 1
 
     def patch(self, request: Request, group_id, member_id):
 
@@ -303,6 +317,14 @@ class GroupMemberOneAPIView(APIView):
         # Validate data
         out_serializer = self.PatchOutSerializer(group_member)
 
+        # Post event to websocket server
+        try:
+            response = requests.post(
+                settings.WEBSOCKET_URL + f'on/group/{group.id}/member.update/')
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            pass
+
         # Return group
         return Response(out_serializer.data)
 
@@ -315,12 +337,11 @@ class GroupMemberInvitableAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    class GetOutSerializer(serializers.ModelSerializer):
-
+    class GetOutSerializer(UserSerializer):
+        
         # Serializer settings
-        class Meta:
-            model = get_user_model()
-            fields = '__all__'
+        class Meta(UserSerializer.Meta):
+            fields = ['id', 'username']
 
     def get(self, request: Request, group_id):
 
@@ -352,13 +373,11 @@ class GroupMessageAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    class GetOutSerializer(serializers.ModelSerializer):
+    class GetOutSerializer(GroupMessageSerializer):
 
         # Serializer settings
-        class Meta:
-            model = GroupMessage
+        class Meta(GroupMessageSerializer.Meta):
             depth = 1
-            fields = '__all__'
 
     def get(self, request: Request, group_id):
 
@@ -380,20 +399,17 @@ class GroupMessageAPIView(APIView):
         # Return group
         return Response(out_serializer.data)
 
-    class PostSerializer(serializers.ModelSerializer):
+    class PostSerializer(GroupMessageSerializer):
 
         # Serializer settings
-        class Meta:
-            model = GroupMessage
+        class Meta(GroupMessageSerializer.Meta):
             fields = ['content']
 
-    class PostOutSerializer(serializers.ModelSerializer):
+    class PostOutSerializer(GroupMessageSerializer):
 
         # Serializer meta properties
-        class Meta:
-            model = GroupMessage
+        class Meta(GroupMessageSerializer.Meta):
             depth = 1
-            fields = '__all__'
 
     def post(self, request: Request, group_id):
 
@@ -401,7 +417,8 @@ class GroupMessageAPIView(APIView):
         group = get_object_or_404(Group, id=group_id)
 
         # Get group-member
-        group_member = get_object_or_404(GroupMember, group=group, user=request.user)
+        group_member = get_object_or_404(
+            GroupMember, group=group, user=request.user)
 
         # Get data from request
         serializer = self.PostSerializer(data=request.data)
@@ -410,10 +427,19 @@ class GroupMessageAPIView(APIView):
         # Save group-message
         group_message = serializer.save(group=group, sender=group_member)
 
+        # Post event
+        try:
+            # Post event to websocket server
+            response = requests.post(
+                settings.WEBSOCKET_URL + f'on/group/{group.id}/message.create/')
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            pass
+
         # Validate data
         out_serializer = self.PostOutSerializer(group_message)
 
-        # Validate data
+        # Return group
         return Response(out_serializer.data)
 
 
@@ -425,13 +451,11 @@ class GroupMessageOneAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    class GetOutSerializer(serializers.ModelSerializer):
+    class GetOutSerializer(GroupMessageSerializer):
 
         # Serializer settings
-        class Meta:
-            model = GroupMessage
+        class Meta(GroupMessageSerializer.Meta):
             depth = 1
-            fields = '__all__'
 
     def get(self, request: Request, group_id, message_id):
 
@@ -453,21 +477,17 @@ class GroupMessageOneAPIView(APIView):
         # Return group
         return Response(out_serializer.data)
 
-    class PatchSerializer(serializers.ModelSerializer):
+    class PatchSerializer(GroupMessageSerializer):
 
         # Serializer settings
-        class Meta:
-            model = GroupMessage
+        class Meta(GroupMessageSerializer.Meta):
             fields = ['content']
 
-    class PatchOutSerializer(serializers.ModelSerializer):
-
+    class PatchOutSerializer(GroupMessageSerializer):
 
         # Serializer meta properties
-        class Meta:
-            model = GroupMessage
+        class Meta(GroupMessageSerializer.Meta):
             depth = 1
-            fields = '__all__'
 
     def patch(self, request: Request, group_id, message_id):
 
@@ -506,13 +526,11 @@ class GroupMeetingAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    class GetOutSerializer(serializers.ModelSerializer):
+    class GetOutSerializer(MeetingSerializer):
 
         # Serializer settings
-        class Meta:
-            model = Meeting
-            depth = 2
-            fields = '__all__'
+        class Meta(MeetingSerializer.Meta):
+            depth = 1
 
     def get(self, request: Request, group_id):
 
