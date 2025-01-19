@@ -1,7 +1,3 @@
-# apps/group/views.py
-
-import uuid
-
 from django.shortcuts import render, get_object_or_404
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -22,13 +18,15 @@ class GroupView(LoginRequiredMixin, View):
     View for group.
     """
 
-    def get(self, request: HttpRequest, group_id: uuid.UUID):
+    def get(self, request: HttpRequest, group_id):
 
         # Get group
         group = get_object_or_404(Group, id=group_id)
 
         # Check if user is a member of any group
-        if not GroupMember.objects.filter(group=group, user=request.user).exists():
+        if not GroupMember.objects\
+                .filter(group=group, user=request.user)\
+                .exists():
             return HttpResponse(status=403)
 
         # Render group

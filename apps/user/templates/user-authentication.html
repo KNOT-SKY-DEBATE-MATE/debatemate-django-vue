@@ -93,8 +93,8 @@
         async onSignin() {
           try {
             this.isLoading = true;
-            await axios.get("{% url 'api.user.csrftoken' %}");
-            await axios.post("{% url 'api.user.signin' %}", this.userSigninForm);
+            await axios.get("/api/user/csrftoken/");
+            await axios.post("/api/user/signin/", this.userSigninForm);
             window.location.href = "/user/";
           } catch (error) {
             console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
@@ -112,13 +112,13 @@
         async onSignup() {
           try {
             this.isLoading = true;
-            await axios.get("{% url 'api.user.csrftoken' %}");
-            await axios.post("{% url 'api.user.signup' %}", this.userSignupForm);
+            await axios.get("/api/user/csrftoken/");
+            await axios.post("/api/user/signup/", this.userSignupForm);
             window.location.href = "/user/";
           } catch (error) {
             console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
             alert({
-              401: "ユーザーが既に登録されています",
+              400: "ユーザーが既に登録されています",
               403: "権限がありません",
               404: "ユーザーが見つかりません",
               500: "予期せぬエラーが発生しました",

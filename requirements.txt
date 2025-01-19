@@ -5,13 +5,10 @@ django-nh3
 django-redis
 djangorestframework
 djangorestframework-simplejwt
-channels
-channels-redis
 psycopg2
 certbot
 certbot-nginx
 gunicorn
-daphne
 cryptography
 requests
-
+httpx

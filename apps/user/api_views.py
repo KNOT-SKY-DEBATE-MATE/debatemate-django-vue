@@ -1,10 +1,7 @@
 # apps/user/api_views.py
 
-import uuid
-
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
-from django.shortcuts import get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
@@ -13,17 +10,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import serializers
 
-
-from .serializers import (
-    UserSerializer
-)
-
 from apps.group.models import (
     Group
-)
-
-from apps.group.serializers import (
-    GroupSerializer
 )
 
 
@@ -47,7 +35,7 @@ class UserSigninAPIView(APIView):
     View for user signin
     """
 
-    class PostInSerializer(serializers.Serializer):
+    class PostSerializer(serializers.Serializer):
 
         # Define serializer
         username = serializers.CharField(max_length=255, required=True)
@@ -58,14 +46,12 @@ class UserSigninAPIView(APIView):
     def post(self, request: Request):
 
         # Get data from request
-        serializer = self.PostInSerializer(data=request.data)
+        serializer = self.PostSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         # Save user
-        user = authenticate(
-            request=request,
-            backend='django.contrib.auth.backends.ModelBackend',
-            **serializer.validated_data)
+        user = authenticate(request=request, **serializer.validated_data,
+            backend='django.contrib.auth.backends.ModelBackend')
 
         # Check if user exists
         if user is None:
@@ -84,11 +70,25 @@ class UserSignupAPIView(APIView):
     View for user signup
     """
 
+    class PostSerializer(serializers.Serializer):
+
+        # Define serializer
+        username = serializers.CharField(max_length=255, required=True)
+
+        # Define serializer
+        password = serializers.CharField(max_length=255, required=True)
+
     def post(self, request: Request):
 
         # Get data from request
-        serializer = UserSerializer(data=request.data)
+        serializer = self.PostSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        # Chcek if user exists
+        if User.objects\
+                .filter(username=serializer.validated_data['username'])\
+                .exists():
+            return Response(status=401)
 
         # Check if user exists
         user = User.objects.create_user(**serializer.validated_data)
@@ -117,7 +117,7 @@ class UserSignoutAPIView(APIView):
         return Response(status=201)
 
 
-class UserOneAPIView(APIView):
+class UserAPIView(APIView):
 
     """
     View for user one
@@ -125,13 +125,17 @@ class UserOneAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    def get(self, request: Request, user_id: uuid.UUID):
+    class GetOutSerializer(serializers.ModelSerializer):
+        
+        # Serializer settings
+        class Meta:
+            model = User
+            fields = ['id', 'username']
 
-        # Get user
-        user = get_object_or_404(User, id=user_id)
+    def get(self, request: Request):
 
         # Validate data
-        serializer = UserSerializer(user)
+        serializer = self.GetOutSerializer(request.user)
 
         # Return user
         return Response(serializer.data)
@@ -145,20 +149,20 @@ class UserGroupAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    def get(self, request: Request, user_id: uuid.UUID):
+    class GetOutSerializer(serializers.ModelSerializer):
 
-        # Get user
-        user = get_object_or_404(User, id=user_id)
+        # Serializer settings
+        class Meta:
+            model = Group
+            fields = '__all__'
 
-        # Check if user is a member of any group
-        if user != request.user:
-            return Response(status=403)
+    def get(self, request: Request):
 
         # Get user-groups
-        groups = Group.objects.filter(groupmember__user=user)
+        groups = Group.objects.filter(groupmember__user=request.user)
 
         # Validate data
-        serializer = GroupSerializer(groups, many=True)
+        out_serializer = self.GetOutSerializer(groups, many=True)
 
         # Return groups
-        return Response(serializer.data)
+        return Response(out_serializer.data)
