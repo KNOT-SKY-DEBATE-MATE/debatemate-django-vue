@@ -198,23 +198,18 @@
           this.groupMemberList = (await axios.get("/api/group/{{ group.id }}/member/")).data;
           this.groupMessageList = (await axios.get("/api/group/{{ group.id }}/message/")).data;
           this.groupMeetingList = (await axios.get("/api/group/{{ group.id }}/meeting/")).data;
-          this.$nextTick(() => {
-            const messageList = document.getElementById('message-list');
-            if (messageList) {
-              messageList.scrollTop = messageList.scrollHeight;
-            }
-          });
+          this.$nextTick(() => ((e) => { e.scrollTop = e.scrollHeight; })(document.getElementById('message-list')));
         } catch (error) {
           if (error.response == undefined) {
-            console.error(`ERROR: Unknown error`);
-            return
+            console.error("ERROR: Unknown error");
+          } else {
+            console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
+            alert({
+              404: "グループが見つかりません",
+              403: "権限がありません",
+              500: "予期せぬエラーが発生しました",
+            }[error.response.status] || "不明なエラーが発生しました。サイト管理者にお問い合わせください");
           }
-          console.error(`ERROR: ${error?.response?.status} ${error?.response?.statusText}`);
-          alert({
-            404: "グループが見つかりません",
-            403: "権限がありません",
-            500: "予期せぬエラーが発生しました",
-          }[error?.response?.status] || "不明なエラーが発生しました。サイト管理者にお問い合わせください");
         } finally {
           this.isLoading = false;
         }
@@ -225,10 +220,15 @@
         axios.defaults.withCredentials = true;
         this.websocket = new WebSocket(`ws://${window.location.hostname}:8001/ws/group/{{ group.id }}/`);
         this.websocket.onmessage = async (event) => {
-          if (event.data === "MESSAGE") try {
+          if (event.data === "MESSAGE.CREATE") try {
             this.groupMessageList = (await axios.get("/api/group/{{ group.id }}/message/")).data;
+            this.$nextTick(() => ((e) => { e.scrollTop = e.scrollHeight; })(document.getElementById('message-list')));
           } catch (error) {
-            console.error(`ERROR: ${error?.response?.status} ${error?.response?.statusText}`);
+            if (error.response === undefined) {
+              console.error("ERROR: Unknown error");
+            } else {
+              console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
+            }
           }
         };
       },
@@ -243,13 +243,17 @@
             this.groupMeetingCreateForm.title = '';
             this.groupMeetingCreateForm.description = '';
           } catch (error) {
-            console.error(`ERROR: ${error?.response?.status} ${error?.response?.statusText}`);
-            alert({
-              400: "ミーティング名が無効",
-              403: "権限がありません",
-              404: "グループが見つかりません",
-              500: "予期せぬエラーが発生しました",
-            }[error?.response?.status] || "不明なエラーが発生しました。サイト管理者にお問い合わせください");
+            if (error.response === undefined) {
+              console.error("ERROR: Unknown error");
+            } else {
+              console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
+              alert({
+                400: "ミーティング名が無効",
+                403: "権限がありません",
+                404: "グループが見つかりません",
+                500: "予期せぬエラーが発生しました",
+              }[error.response.status] || "不明なエラーが発生しました。サイト管理者にお問い合わせください");
+            }
           } finally {
             this.isLoading = false;
           }
@@ -260,24 +264,19 @@
             await axios.get("/api/user/csrftoken/");
             this.groupMessageList.push((await axios.post("/api/group/{{ group.id }}/message/", this.groupMessageCreateForm)).data);
             this.groupMessageCreateForm.content = "";
-            this.$nextTick(() => {
-              const messageList = document.getElementById('message-list');
-              if (messageList) {
-                messageList.scrollTop = messageList.scrollHeight;
-              }
-            });
+            this.$nextTick(() => ((e) => { e.scrollTop = e.scrollHeight; })(document.getElementById('message-list')));
           } catch (error) {
             if (error.response == undefined) {
-              console.error(`ERROR: Unknown error`);
-              return
+              console.error("ERROR: Unknown error");
+            } else {
+              console.error(error);
+              alert({
+                400: "メッセージが既に送信されています",
+                403: "権限がありません",
+                404: "グループが見つかりません",
+                500: "予期せぬエラーが発生しました",
+              }[error.response.status] || "不明なエラーが発生しました。サイト管理者にお問い合わせください");
             }
-            console.error(error);
-            alert({
-              400: "メッセージが既に送信されています",
-              403: "権限がありません",
-              404: "グループが見つかりません",
-              500: "予期せぬエラーが発生しました",
-            }[error?.response?.status] || "不明なエラーが発生しました。サイト管理者にお問い合わせください");
           } finally {
             this.isLoading = false;
           }
@@ -288,15 +287,15 @@
             this.groupInvitableList = (await axios.get("/api/group/{{ group.id }}/member/invitable/", { params: this.groupInviteForm })).data;
           } catch (error) {
             if (error.response == undefined) {
-              console.error(`ERROR: Unknown error`);
-              return
+              console.error("ERROR: Unknown error");
+            } else {
+              console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
+              alert({
+                403: "権限がありません",
+                404: "ユーザーが見つかりません",
+                500: "予期せぬエラーが発生しました",
+              }[error.response.status] || "不明なエラーが発生しました。サイト管理者にお問い合わせください");
             }
-            console.error(`ERROR: ${error?.response?.status} ${error?.response?.statusText}`);
-            alert({
-              403: "権限がありません",
-              404: "ユーザーが見つかりません",
-              500: "予期せぬエラーが発生しました",
-            }[error?.response?.status] || "不明なエラーが発生しました。サイト管理者にお問い合わせください");
           } finally {
             this.isLoading = false;
           }
@@ -308,22 +307,20 @@
             this.groupMemberList.push((await axios.post("/api/group/{{ group.id }}/member/", {
               user: user.id,
               nickname: user.username,
-              group: "{{ group.id }}",
             })).data);
-            this.groupInviteForm.query = "";
             this.groupInvitableList = (await axios.get("/api/group/{{ group.id }}/member/invitable/", this.groupInviteForm)).data;
           } catch (error) {
-            if (error.response == undefined) {
-              console.error(`ERROR: Unknown error`);
-              return
+            if (error.response === undefined) {
+              console.error("ERROR: Unknown error");
+            } else {
+              console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
+              alert({
+                400: "メンバーが既に招待されています",
+                403: "権限がありません",
+                404: "ユーザーが見つかりません",
+                500: "予期せぬエラーが発生しました",
+              }[error.response.status] || "不明なエラーが発生しました。サイト管理者にお問い合わせください");
             }
-            console.error(`ERROR: ${error?.response?.status} ${error?.response?.statusText}`);
-            alert({
-              400: "メンバーが既に招待されています",
-              403: "権限がありません",
-              404: "ユーザーが見つかりません",
-              500: "予期せぬエラーが発生しました",
-            }[error?.response?.status] || "不明なエラーが発生しました。サイト管理者にお問い合わせください");
           } finally {
             this.isLoading = false;
           }

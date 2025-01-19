@@ -231,24 +231,20 @@
 
         try {
           this.isLoading = true;
-          // メッセージリストの取得
           this.meetingMessageList = (await axios.get(`/api/meeting/${this.meetingId}/message/`)).data;
-          // メンバーリストの取得
           this.meetingMemberList = (await axios.get(`/api/meeting/${this.meetingId}/member/`)).data;
-
-          this.$nextTick(() => {
-            const messageList = document.getElementById('message-list');
-            if (messageList) {
-              messageList.scrollTop = messageList.scrollHeight;
-            }
-          });
+          this.$nextTick(() => ((e) => { e.scrollTop = e.scrollHeight; })(document.getElementById('message-list')));
         } catch (error) {
-          console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
-          alert({
-            404: "ミーティングが見つかりません",
-            403: "権限がありません",
-            500: "予期せぬエラーが発生しました",
-          }[error.response.status] || "不明なエラーが発生しました。サイト管理者にお問い合わせください");
+          if (error.response == undefined) {
+            console.error("ERROR: Unknown error");
+          } else {
+            console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
+            alert({
+              404: "ミーティングが見つかりません",
+              403: "権限がありません",
+              500: "予期せぬエラーが発生しました",
+            }[error.response.status] || "不明なエラーが発生しました。サイト管理者にお問い合わせください");
+          }
         } finally {
           this.isLoading = false;
         }
@@ -259,10 +255,10 @@
         axios.defaults.xsrfCookieName = "csrftoken";
         axios.defaults.xsrfHeaderName = "X-CSRFToken";
         axios.defaults.withCredentials = true;
-        this.websocket = new WebSocket(`ws://${window.location.hostname}:8001/ws/meeting/{{ group.id }}/`);
+        this.websocket = new WebSocket(`ws://${window.location.hostname}:8001/ws/meeting/{{ meeting.id }}/`);
         this.websocket.onmessage = async (event) => {
-          if (event.data === "MESSAGE") try {
-            this.groupMessageList = (await axios.get("/api/group/{{ group.id }}/message/")).data;
+          if (event.data === "MESSAGE.CREATE") try {
+            this.meetingMessageList = (await axios.get("/api/meeting/{{ meeting.id }}/message/")).data;
           } catch (error) {
             console.error(`ERROR: ${error?.response?.status} ${error?.response?.statusText}`);
           }
@@ -273,24 +269,21 @@
           try {
             this.isLoading = true;
             await axios.get("/api/user/csrftoken/");
-            this.meetingMessageList.push(
-              (await axios.post(`/api/meeting/${this.meetingId}/message/`, this.meetingMessageCreateForm)).data
-            );
+            this.meetingMessageList.push((await axios.post(`/api/meeting/${this.meetingId}/message/`, this.meetingMessageCreateForm)).data);
             this.meetingMessageCreateForm.content = "";
-            this.$nextTick(() => {
-              const messageList = document.getElementById('message-list');
-              if (messageList) {
-                messageList.scrollTop = messageList.scrollHeight;
-              }
-            });
+            this.$nextTick(() => ((e) => { e.scrollTop = e.scrollHeight; })(document.getElementById('message-list')));
           } catch (error) {
-            console.error(error);
-            alert({
-              400: "メッセージが既に送信されています",
-              403: "権限がありません",
-              404: "ミーティングが見つかりません",
-              500: "予期せぬエラーが発生しました",
-            }[error.response.status] || "不明なエラーが発生しました。サイト管理者にお問い合わせください");
+            if (error.response == undefined) {
+              console.error("ERROR: Unknown error");
+            } else {
+              console.error(error);
+              alert({
+                400: "メッセージが既に送信されています",
+                403: "権限がありません",
+                404: "ミーティングが見つかりません",
+                500: "予期せぬエラーが発生しました",
+              }[error.response.status] || "不明なエラーが発生しました。サイト管理者にお問い合わせください");
+            }
           } finally {
             this.isLoading = false;
           }
