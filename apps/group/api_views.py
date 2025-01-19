@@ -6,8 +6,6 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import serializers
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 
 from .models import (
     Group,
@@ -75,10 +73,6 @@ class GroupAPIView(APIView):
             # Add first user to group
             group_member = GroupMember.objects\
                 .create(group=group, user=request.user, nickname=request.user.username, is_admin=True)
-
-        # Get channel layer
-        async_to_sync(get_channel_layer().group_add)(
-            str(group), str(group_member))
 
         # Validate data
         out_serializer = self.PostOutSerializer(group)
@@ -227,10 +221,6 @@ class GroupMemberAPIView(APIView):
         # Save and get group-member
         group_member = serializer.save(group=group)
 
-        # Create channel-layer group with group-member
-        async_to_sync(get_channel_layer().group_add)(
-            str(group), str(group_member))
-
         # Validate data
         out_serializer = self.PostOutSerializer(group_member)
 
@@ -330,8 +320,7 @@ class GroupMemberInvitableAPIView(APIView):
 
         # Serializer settings
         class Meta:
-            model = GroupMember
-            depth = 1
+            model = get_user_model()
             fields = '__all__'
 
     def get(self, request: Request, group_id):
@@ -427,12 +416,6 @@ class GroupMessageAPIView(APIView):
 
         # Validate data
         out_serializer = self.PostOutSerializer(group_message)
-
-        # Get channel layer
-        async_to_sync(get_channel_layer().group_send)(str(group), {
-            'type': 'on_message',
-            'message': out_serializer.data
-        })
 
         # Validate data
         return Response(out_serializer.data)

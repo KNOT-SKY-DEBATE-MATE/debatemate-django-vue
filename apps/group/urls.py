@@ -1,12 +1,12 @@
-from django.urls import re_path
+from django.urls import path
 
 from .views import (
     GroupView,
 )
 
 urlpatterns = [
-    re_path(
-        r'^(?P<group_id>[0-9a-fA-F]{32})/$',
-        GroupView.as_view(),
+    path(
+        route='<uuid:group_id>/',
+        view=GroupView.as_view(),
     ),
 ]
