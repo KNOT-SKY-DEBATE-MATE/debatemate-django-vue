@@ -12,29 +12,24 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from decouple import config
-import os
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+# https://docs.djangoproject.com/en/5.1/ref/settings/#std:setting-BASE_DIR
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # Debug Mode
 # https://docs.djangoproject.com/en/5.1/ref/settings/#std:setting-DEBUG
 
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = config('DEBUG')
 
 
 # Django Secret Key
 # https://docs.djangoproject.com/en/5.1/ref/settings/#secret-key
 
-if not DEBUG:
-    SECRET_KEY = config('SECRET_KEY')
-else:
-    # fallback for development
-    SECRET_KEY = "nfg6CUJ1ySCnyFrCXmisrmxtwBuRZ5TsSeeb4fZVpK96ls3Qx2HQCSHI8cdUAt8te80"
+SECRET_KEY = config('SECRET_KEY')
 
 
 # Allowed Hosts
@@ -54,13 +49,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'channels',
     'rest_framework',
+    'rest_framework_simplejwt',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'channels', 
     'apps.user',
     'apps.group',
     'apps.meeting',
@@ -151,31 +145,20 @@ ASGI_APPLICATION = 'config.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-if not DEBUG and False:
-
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('POSTGRES_DB'),
-            'USER': config('POSTGRES_USER'),
-            'PASSWORD': config('POSTGRES_PASSWORD'),
-            'HOST': 'localhost',
-            'PORT': config('POSTGRES_PORT'),
-            'CONN_MAX_AGE': 600,
-            'OPTIONS': {
-                'sslmode': 'require',
-            },
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': config('POSTGRES_DB'),
+        'USER': config('POSTGRES_USER'),
+        'PASSWORD': config('POSTGRES_PASSWORD'),
+        'HOST': 'postgres',
+        'PORT': config('POSTGRES_PORT'),
+        'CONN_MAX_AGE': 600,
+        'OPTIONS': {
+            # 'sslmode': 'require',
+        },
     }
-
-else:
-    
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
 
 
 # Password hashers
@@ -205,15 +188,7 @@ AUTHENTICATION_BACKENDS = [
 
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
-
-# Email
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-
 ACCOUNT_EMAIL_REQUIRED = True
-
-
-# Username
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 
 ACCOUNT_USERNAME_REQUIRED = True
 
@@ -234,9 +209,9 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 # Django contrib.sites
-# Site ID (django.contrib.sites)
+# https://docs.djangoproject.com/en/5.1/ref/contrib/sites/
 
-SITE_ID = config('SITE_ID', default=1, cast=int)
+SITE_ID = 1
 
 
 # Password validation
@@ -290,53 +265,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Django Redis
 # https://django-redis.readthedocs.io/en/latest/
 
-if not DEBUG:
-
-    CACHES = {
-        'default': {
-            'BACKEND': 'django_redis.cache.RedisCache',
-            'LOCATION': "redis://{redis_host}:{redis_port}/{redis_db}".format(
-                redis_host=config('REDIS_HOST'),
-                redis_port=config('REDIS_PORT'),
-                redis_db=config('REDIS_DB'),
-            ),
-            'OPTIONS': {
-                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            },
-        }
-    }
-
-else:
-
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'unique-snowflake',
-        }
-    }
-
-
-if not DEBUG:
-
-    CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels_redis.core.RedisChannelLayer',
-            'CONFIG': {
-                'hosts': [
-                    'redis://{redis_password}@{redis_host}:{redis_port}/{redis_db}'.format(
-                        redis_host=config('REDIS_HOST'),
-                        redis_port=config('REDIS_PORT'),
-                        redis_db=config('REDIS_DB'),
-                        redis_password=config('REDIS_PASSWORD'),
-                    ),
-                ],
-            },
+CACHE = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://:{redis_password}@${redis_host}:{redis_port}/{redis_db}'.format(
+            redis_host=config('REDIS_HOST'),
+            redis_port=config('REDIS_PORT'),
+            redis_db=config('REDIS_DB'),
+            redis_password=config('REDIS_PASSWORD'),
+        ),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
     }
-
-else:
-    CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels.layers.InMemoryChannelLayer',
-        },
-    }
+}

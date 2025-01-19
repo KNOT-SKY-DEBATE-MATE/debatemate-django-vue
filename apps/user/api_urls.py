@@ -5,7 +5,7 @@ from .api_views import (
     UserSignupAPIView,
     UserSigninAPIView,
     UserSignoutAPIView,
-    UserOneAPIView,
+    UserAPIView,
     UserGroupAPIView,
 )
 
@@ -31,13 +31,13 @@ urlpatterns = [
         name='api.user.signout',
     ),
     path(
-        route='<int:user_id>/',
-        view=UserOneAPIView.as_view(),
-        name='api.user.(id)',
+        route='',
+        view=UserAPIView.as_view(),
+        name='api.user',
     ),
     path(
-        route='<int:user_id>/group/',
+        route='group/',
         view=UserGroupAPIView.as_view(),
-        name='api.user.(id).group',
+        name='api.user.group',
     ),
 ]

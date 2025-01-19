@@ -87,8 +87,8 @@
       },
       async created() {
         try {
-          this.user = (await axios.get("/api/user/{{ user.id }}/")).data;
-          this.userGroupList = (await axios.get("/api/user/{{ user.id }}/group/")).data;
+          this.user = (await axios.get("/api/user/")).data;
+          this.userGroupList = (await axios.get("/api/group/")).data;
         } catch (error) {
           console.error(`ERROR: ${error.response.status} ${error.response.statusText}`);
           alert({

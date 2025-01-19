@@ -1,6 +1,3 @@
-# apps/group/api_views.py
-import uuid
-
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -8,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import serializers
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
@@ -17,23 +15,8 @@ from .models import (
     GroupMessage,
 )
 
-from .serializers import (
-    GroupSerializer,
-    GroupGetMemberSerializer,
-    GroupPostMemberSerializer,
-    GroupMessageSerializer,
-)
-
-from apps.user.serializers import (
-    UserSerializer
-)
-
 from apps.meeting.models import (
     Meeting
-)
-
-from apps.meeting.serializers import (
-    MeetingPostSerializer
 )
 
 
@@ -45,21 +28,42 @@ class GroupAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    class GetOutSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = Group
+            fields = ['id', 'name', 'description']
+
     def get(self, request: Request):
 
         # Get group
-        groups = Group.objects.all()
+        groups = Group.objects.filter(groupmember__user=request.user)
 
         # Validate data
-        serializer = GroupSerializer(groups, many=True)
+        serializer = self.GetOutSerializer(groups, many=True)
 
         # Return groups
         return Response(serializer.data)
 
+    class PostSerializer(serializers.ModelSerializer):
+
+        class Meta:
+            model = Group
+            fields = ['name', 'description']
+
+    class PostOutSerializer(serializers.ModelSerializer):
+
+        id = serializers.UUIDField(format='hex')
+
+        class Meta:
+            model = Group
+            fields = '__all__'
+
     def post(self, request: Request):
 
         # Get group
-        serializer = GroupSerializer(data=request.data)
+        serializer = self.PostSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         # Transaction for group and group-member
@@ -73,13 +77,14 @@ class GroupAPIView(APIView):
                 .create(group=group, user=request.user, nickname=request.user.username, is_admin=True)
 
         # Get channel layer
-        async_to_sync(get_channel_layer().group_add)(str(group), str(group_member))
+        async_to_sync(get_channel_layer().group_add)(
+            str(group), str(group_member))
 
         # Validate data
-        serializer = GroupSerializer(group)
+        out_serializer = self.PostOutSerializer(group)
 
         # Return group
-        return Response(serializer.data)
+        return Response(out_serializer.data)
 
 
 class GroupOneAPIView(APIView):
@@ -89,6 +94,13 @@ class GroupOneAPIView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+
+    class GetOutSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = Group
+            fields = '__all__'
 
     def get(self, request: Request, group_id):
 
@@ -102,10 +114,24 @@ class GroupOneAPIView(APIView):
             return Response(status=403)
 
         # Validate data
-        serializer = GroupSerializer(group)
+        out_serializer = self.GetOutSerializer(group)
 
         # Return group
-        return Response(serializer.data)
+        return Response(out_serializer.data)
+
+    class PatchSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = Group
+            fields = ['name', 'description']
+
+    class PatchOutSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = Group
+            fields = '__all__'
 
     def patch(self, request: Request, group_id):
 
@@ -119,12 +145,18 @@ class GroupOneAPIView(APIView):
             return Response(status=403)
 
         # Get data from request
-        serializer = GroupSerializer(group, data=request.data, partial=True)
+        serializer = self.PatchOutSerializer(
+            group, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+
+        # Save
+        group_member = serializer.save()
 
         # Validate data
-        return Response(serializer.data)
+        out_serializer = self.PatchOutSerializer(group_member)
+
+        # Return group
+        return Response(out_serializer.data)
 
 
 class GroupMemberAPIView(APIView):
@@ -134,6 +166,14 @@ class GroupMemberAPIView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+
+    class GetOutSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = GroupMember
+            depth = 1
+            fields = '__all__'
 
     def get(self, request: Request, group_id):
 
@@ -150,10 +190,24 @@ class GroupMemberAPIView(APIView):
         group_members = GroupMember.objects.filter(group=group)
 
         # Validate data
-        serializer = GroupGetMemberSerializer(group_members, many=True)
+        out_serializer = self.GetOutSerializer(group_members, many=True)
 
         # Return group
-        return Response(serializer.data)
+        return Response(out_serializer.data)
+
+    class PostSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = GroupMember
+            fields = ['user', 'nickname']
+
+    class PostOutSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = GroupMember
+            fields = '__all__'
 
     def post(self, request: Request, group_id):
 
@@ -167,17 +221,21 @@ class GroupMemberAPIView(APIView):
             return Response(status=403)
 
         # Get data from request
-        serializer = GroupPostMemberSerializer(data=request.data)
+        serializer = self.PostSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         # Save and get group-member
-        group_member = serializer.save()
+        group_member = serializer.save(group=group)
 
         # Create channel-layer group with group-member
-        async_to_sync(get_channel_layer().group_add)(str(group), str(group_member))
+        async_to_sync(get_channel_layer().group_add)(
+            str(group), str(group_member))
 
         # Validate data
-        return Response(serializer.data)
+        out_serializer = self.PostOutSerializer(group_member)
+
+        # Return group
+        return Response(out_serializer.data)
 
 
 class GroupMemberOneAPIView(APIView):
@@ -187,6 +245,13 @@ class GroupMemberOneAPIView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+
+    class GetOutSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = GroupMember
+            fields = '__all__'
 
     def get(self, request: Request, group_id, member_id):
 
@@ -200,13 +265,28 @@ class GroupMemberOneAPIView(APIView):
             return Response(status=403)
 
         # Check if user is a member of any group
-        group_member = get_object_or_404(GroupMember, id=member_id, group=group)
+        group_member = get_object_or_404(
+            GroupMember, id=member_id, group=group)
 
         # Validate data
-        serializer = GroupGetMemberSerializer(group_member)
+        out_serializer = self.GetOutSerializer(group_member)
 
         # Return group
-        return Response(serializer.data)
+        return Response(out_serializer.data)
+
+    class PatchSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = GroupMember
+            fields = ['nickname']
+
+    class PatchOutSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = GroupMember
+            fields = '__all__'
 
     def patch(self, request: Request, group_id, member_id):
 
@@ -220,15 +300,22 @@ class GroupMemberOneAPIView(APIView):
             return Response(status=403)
 
         # Check if user is a member of any group
-        group_member = get_object_or_404(GroupMember, id=member_id, group=group)
+        group_member = get_object_or_404(
+            GroupMember, id=member_id, group=group)
 
         # Get data from request
-        serializer = GroupGetMemberSerializer(group_member, data=request.data, partial=True)
+        serializer = self.PatchSerializer(
+            group_member, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+
+        # Save and get group-member
+        group_member = serializer.save()
 
         # Validate data
-        return Response(serializer.data)
+        out_serializer = self.PatchOutSerializer(group_member)
+
+        # Return group
+        return Response(out_serializer.data)
 
 
 class GroupMemberInvitableAPIView(APIView):
@@ -238,6 +325,14 @@ class GroupMemberInvitableAPIView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+
+    class GetOutSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = GroupMember
+            depth = 1
+            fields = '__all__'
 
     def get(self, request: Request, group_id):
 
@@ -255,10 +350,10 @@ class GroupMemberInvitableAPIView(APIView):
             .filter(username__icontains=request.query_params.get('query', ''))
 
         # Validate data
-        serializer = UserSerializer(users, many=True)
+        out_serializer = self.GetOutSerializer(users, many=True)
 
         # Return group
-        return Response(serializer.data)
+        return Response(out_serializer.data)
 
 
 class GroupMessageAPIView(APIView):
@@ -268,6 +363,14 @@ class GroupMessageAPIView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+
+    class GetOutSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = GroupMessage
+            depth = 1
+            fields = '__all__'
 
     def get(self, request: Request, group_id):
 
@@ -284,10 +387,28 @@ class GroupMessageAPIView(APIView):
         group_messages = GroupMessage.objects.filter(group=group)
 
         # Validate data
-        serializer = GroupMessageSerializer(group_messages, many=True)
+        out_serializer = self.GetOutSerializer(group_messages, many=True)
 
         # Return group
-        return Response(serializer.data)
+        return Response(out_serializer.data)
+
+    class PostSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = GroupMessage
+            fields = ['content']
+
+    class PostOutSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        id = serializers.UUIDField(format='hex')
+
+        # Serializer meta properties
+        class Meta:
+            model = GroupMessage
+            depth = 1
+            fields = '__all__'
 
     def post(self, request: Request, group_id):
 
@@ -298,18 +419,23 @@ class GroupMessageAPIView(APIView):
         group_member = get_object_or_404(GroupMember, group=group, user=request.user)
 
         # Get data from request
-        serializer = GroupMessageSerializer(data=request.data)
+        serializer = self.PostSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(sender=group_member, group=group)
+
+        # Save group-message
+        group_message = serializer.save(group=group, sender=group_member)
+
+        # Validate data
+        out_serializer = self.PostOutSerializer(group_message)
 
         # Get channel layer
         async_to_sync(get_channel_layer().group_send)(str(group), {
             'type': 'on_message',
-            'message': serializer.data,
+            'message': out_serializer.data
         })
 
         # Validate data
-        return Response(serializer.data)
+        return Response(out_serializer.data)
 
 
 class GroupMessageOneAPIView(APIView):
@@ -319,6 +445,14 @@ class GroupMessageOneAPIView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+
+    class GetOutSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = GroupMessage
+            depth = 1
+            fields = '__all__'
 
     def get(self, request: Request, group_id, message_id):
 
@@ -335,10 +469,28 @@ class GroupMessageOneAPIView(APIView):
         group_message = GroupMessage.objects.get(id=message_id, group=group)
 
         # Validate data
-        serializer = GroupMessageSerializer(group_message)
+        out_serializer = self.GetOutSerializer(group_message)
 
         # Return group
-        return Response(serializer.data)
+        return Response(out_serializer.data)
+
+    class PatchSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = GroupMessage
+            fields = ['content']
+
+    class PatchOutSerializer(serializers.ModelSerializer):
+
+        # Message-id by urn format
+        id = serializers.UUIDField(format='hex')
+
+        # Serializer meta properties
+        class Meta:
+            model = GroupMessage
+            depth = 1
+            fields = '__all__'
 
     def patch(self, request: Request, group_id, message_id):
 
@@ -352,15 +504,21 @@ class GroupMessageOneAPIView(APIView):
             return Response(status=403)
 
         # Check if user is a member of any group
-        group_message = get_object_or_404(GroupMessage, id=message_id, group=group)
+        group_message = get_object_or_404(
+            GroupMessage, id=message_id, group=group)
 
         # Get data from request
-        serializer = GroupMessageSerializer(group_message, data=request.data, partial=True)
+        serializer = self.PatchSerializer(group_message, data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+
+        # Save group-message
+        group_message = serializer.save()
 
         # Validate data
-        return Response(serializer.data)
+        out_serializer = self.PatchOutSerializer(group_message)
+
+        # Get channel layer
+        return Response(out_serializer.data)
 
 
 class GroupMeetingAPIView(APIView):
@@ -370,6 +528,14 @@ class GroupMeetingAPIView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+
+    class GetOutSerializer(serializers.ModelSerializer):
+
+        # Serializer settings
+        class Meta:
+            model = Meeting
+            depth = 2
+            fields = '__all__'
 
     def get(self, request: Request, group_id):
 
@@ -386,7 +552,7 @@ class GroupMeetingAPIView(APIView):
         meeting = Meeting.objects.filter(group=group)
 
         # Validate data
-        serializer = MeetingPostSerializer(meeting, many=True)
+        serializer = self.GetOutSerializer(meeting, many=True)
 
         # Return group
         return Response(serializer.data)
