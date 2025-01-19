@@ -2,6 +2,10 @@ import nh3
 import uuid
 
 from django.db import models
+from apps.group.models import (
+    Group,
+    GroupMember,
+)
 
 
 class Meeting(models.Model):
@@ -49,29 +53,18 @@ class Meeting(models.Model):
         # Save
         super(Meeting, self).save(*args, **kwargs)
 
+
 class MeetingMember(models.Model):
+
     """
     Discussion Member Model
     """
 
-    # Unique ID
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    
     # Fields
-    meeting = models.ForeignKey(
-        to=Meeting,
-        on_delete=models.CASCADE, related_name='meetingmember')
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE)
 
     # Fields
-    member = models.ForeignKey(
-        to='group.GroupMember',
-        on_delete=models.CASCADE, related_name='meetingmember')
-    
-    # Fields
-    nickname = models.CharField(max_length=255)
-
-    # Fields
-    is_admin = models.BooleanField(default=False)
+    member = models.ForeignKey(GroupMember, on_delete=models.CASCADE)   
 
     # Fields
     is_kicked = models.BooleanField(default=False)
@@ -84,28 +77,12 @@ class MeetingMember(models.Model):
 
         # Constraints
         constraints = [
-
             # Unique constraint for meeting and member
             models.UniqueConstraint(
-                fields=['meeting', 'member'],
-                name='unique_meeting_member'
-            ),
-
-            # Unique constraint for meeting and nickname
-            models.UniqueConstraint(
-                fields=['meeting', 'nickname'],
-                name='unique_meeting_nickname'
-            )
+                fields=['meeting', 'member'], name='unique_meeting_member'),
         ]
 
-    def save(self, *args, **kwargs):
-        
-        # Sanitize nickname
-        self.nickname = nh3.clean_text(self.nickname)
-
-        # Save
-        super().save(*args, **kwargs)
-
+    
 
 class MeetingMessage(models.Model):
 
@@ -117,7 +94,7 @@ class MeetingMessage(models.Model):
     meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE)
 
     # Fields
-    sender = models.ForeignKey(MeetingMember, on_delete=models.CASCADE)
+    sender = models.ForeignKey(GroupMember, on_delete=models.CASCADE)
 
     # Fields
     content = models.TextField(max_length=1024, blank=True)
@@ -141,9 +118,6 @@ class MeetingMessage(models.Model):
 
         # Sanitize content
         self.content = nh3.clean_text(self.content)
-
-        # Sanitize nickname
-        self.nickname = nh3.clean_text(self.nickname)
 
         # Save
         super(MeetingMessage, self).save(*args, **kwargs)
@@ -194,3 +168,4 @@ class MeetingMessageAnnotation(models.Model):
 
         # Save
         super(MeetingMessageAnnotation, self).save(*args, **kwargs)
+

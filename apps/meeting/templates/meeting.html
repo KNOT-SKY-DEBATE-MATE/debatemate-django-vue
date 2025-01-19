@@ -95,7 +95,6 @@
                 </button>
             </div>
         </div>
-
         <!-- Right Sidebar -->
         <div class="d-flex flex-column p-3 gap-3 bg-light border-start" style="width: 240px;">
             <h5>ミーティング情報</h5>
@@ -119,7 +118,6 @@
                 <p class="mb-0 small">[[ meetingData.topic ]]</p>
             </div>
         </div>
-
 
         <!-- User List Modal Window -->
         <div v-if="userListWindowOpen" class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);">
@@ -195,6 +193,7 @@
                     userListWindowOpen: false, 
                     voiceRecognitionEnabled: false,
                     userListWindow: null,
+
                 };
             },
 
@@ -274,6 +273,8 @@
                         this.isLoading = false;
                     }
                 },
+
+
 
 
                 openUserListWindow() {

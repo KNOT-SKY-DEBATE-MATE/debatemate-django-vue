@@ -1,16 +1,18 @@
 # apps/meeting/api_views.py
 import requests
 import uuid
-
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
+from rest_framework import serializers
+
+
 
 from apps.group.models import (
-    Group,
     GroupMember,
 )
 
@@ -19,15 +21,17 @@ from .models import (
     MeetingMember,
     MeetingMessage,
     MeetingMessageAnnotation,
+
 )
 
 from .serializers import (
+
     MeetingPostSerializer,
     MeetingGetSerializer,
-    MeetingMemberSerializer,
     MeetingMessageSerializer,
     MeetingMessageAnnotationSerializer,
 )
+
 
 
 class MeetingAPIView(APIView):
@@ -45,23 +49,34 @@ class MeetingAPIView(APIView):
         # Return group
         return Response(serializer.data)
 
+    class PostSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Meeting
+            fields = ['title', 'group']
+    class PostOutSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Meeting
+            fields = '__all__'
+
     def post(self, request: Request):
 
         # Get data from request
-        serializer = MeetingPostSerializer(data=request.data)
+        serializer = self.PostSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        if not GroupMember.objects\
+                .filter(group=serializer.validated_data['group'], user=request.user)\
+                .exists():
+            return Response(status=403)
+        
         # Save meeting
         meeting = serializer.save()
 
-        # Add first user to group
-        group_member = get_object_or_404(GroupMember, user=request.user, group=meeting.group)
-
-        # Return group
-        MeetingMember.objects.create(meeting=meeting, member=group_member, is_admin=True, nickname=group_member.nickname)
-
         # Validate data
-        return Response(serializer.data)
+        out_serializer = self.PostOutSerializer(meeting)
+
+        # Return meeting
+        return Response(out_serializer.data)
 
 
 class MeetingOneAPIView(APIView):
@@ -74,8 +89,8 @@ class MeetingOneAPIView(APIView):
         meeting = get_object_or_404(Meeting, id=meeting_id)
 
         # Check if user is a member of any meeting
-        if not MeetingMember.objects\
-                .filter(meeting=meeting, member__user=request.user)\
+        if not GroupMember.objects\
+                .filter(group=meeting.group, user=request.user)\
                 .exists():
             return Response(status=403)
 
@@ -91,8 +106,8 @@ class MeetingOneAPIView(APIView):
         meeting = get_object_or_404(Meeting, id=meeting_id)
 
         # Check if user is a member of any group
-        if not MeetingMember.objects\
-                .filter(meeting=meeting, member__user=request.user, is_admin=True)\
+        if not GroupMember.objects\
+                .filter(group=meeting.group, user=request.user)\
                 .exists():
             return Response(status=403)
 
@@ -109,86 +124,32 @@ class MeetingMemberAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    class GetOutSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = MeetingMember
+            depth = 1
+            fields = '__all__'
+
     def get(self, request: Request, meeting_id):
 
         # Get meeting
         meeting = get_object_or_404(Meeting, id=meeting_id)
 
         # Check if user is a member of any group
-        if not MeetingMember.objects\
-                .filter(meeting=meeting, member__user=request.user)\
+        if not GroupMember.objects\
+                .filter(group=meeting.group, user=request.user)\
                 .exists():
             return Response(status=403)
 
-        # Get meeting members
+        # Get meeting member
         meeting_members = MeetingMember.objects.filter(meeting=meeting)
 
         # Validate data
-        serializer = MeetingMemberSerializer(meeting_members, many=True)
+        out_serializer = self.GetOutSerializer(meeting_members, many=True)
 
         # Return meeting
-        return Response(serializer.data)
-
-    def post(self, request: Request, meeting_id):
-
-        # グループ取得
-        meeting = get_object_or_404(Meeting, id=meeting_id)
-
-        # 管理者権限チェック
-        if not MeetingMember.objects\
-                .filter(meeting=meeting, member__user=request.user, is_admin=True)\
-                .exists():
-            return Response(status=403)
-
-        # メンバー追加処理
-        serializer = MeetingMemberSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(meeting=meeting)
-
-        # Validate data
-        return Response(serializer.data)
-
-
-class MeetingMemberOneAPIView(APIView):
-
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request: Request, meeting_id, member_id):
-
-        # Get meeting
-        meeting = get_object_or_404(Meeting, id=meeting_id)
-
-        # Check if user is a member of any group
-        if not MeetingMember.objects\
-                .filter(meeting=meeting, member__user=request.user)\
-                .exists():
-            return Response(status=403)
-
-        # Get meeting member
-        meeting_member = get_object_or_404(MeetingMember, id=member_id, meeting=meeting)
-
-        # Validate data
-        serializer = MeetingMemberSerializer(meeting_member)
-
-        # Return meeting
-        return Response(serializer.data)
-
-    def patch(self, request: Request, meeting_id, member_id):
-
-        # Get group
-        meeting = get_object_or_404(Meeting, id=meeting_id)
-
-        # Get meeting member
-        meeting_member = get_object_or_404(MeetingMember, id=member_id, meeting=meeting)
-
-        # Get data from request
-        serializer = MeetingMemberSerializer(meeting_member, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        # Validate data
-        return Response(serializer.data)
-
+        return Response(out_serializer.data)
+    
 
 class MeetingMessageAPIView(APIView):
 
@@ -200,8 +161,8 @@ class MeetingMessageAPIView(APIView):
         meeting = get_object_or_404(Meeting, id=meeting_id)
 
         # Check if user is a member of any group
-        if not MeetingMember.objects\
-                .filter(meeting=meeting, member__user=request.user)\
+        if not GroupMember.objects\
+                .filter(group=meeting.group, user=request.user)\
                 .exists():
             return Response(status=403)
 
@@ -215,19 +176,21 @@ class MeetingMessageAPIView(APIView):
         return Response(serializer.data)
 
     def post(self, request: Request, meeting_id):
-
-        # Get group
+        # Get meeting
         meeting = get_object_or_404(Meeting, id=meeting_id)
 
-        # Get meeting member
-        meeting_member = get_object_or_404(MeetingMember, meeting=meeting, member=request.user)
+        # Get meeting member (GroupMemberを経由してユーザーを検索)
+        group_member = get_object_or_404(
+            GroupMember, 
+            user=request.user, 
+            group=meeting.group
+            )
 
         # Get data from request
         serializer = MeetingMessageSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(sender=meeting_member, meeting=meeting)
+        serializer.save(sender=group_member, meeting=meeting)
 
-        # Validate data
         return Response(serializer.data)
 
 
@@ -241,8 +204,8 @@ class MeetingMessageOneAPIView(APIView):
         meeting = get_object_or_404(Meeting, id=meeting_id)
 
         # Check if user is a member of any group
-        if not MeetingMember.objects\
-                .filter(meeting=meeting, member__user=request.user)\
+        if not GroupMember.objects\
+                .filter(group=meeting.group, user=request.user)\
                 .exists():
             return Response(status=403)
 
@@ -282,8 +245,8 @@ class MeetingMessageAnnotationAPIView(APIView):
         meeting = get_object_or_404(Meeting, id=meeting_id)
 
         # Check if user is a member of any group
-        if not MeetingMember.objects\
-                .filter(meeting=meeting, member__user=request.user)\
+        if not GroupMember.objects\
+                .filter(group=meeting.group, user=request.user)\
                 .exists():
             return Response(status=403)
 

@@ -18,11 +18,6 @@ from apps.group.models import (
 
 from .models import (
     Meeting,
-    MeetingMember,
-)
-from .serializers import (
-    MeetingPostSerializer,
-    MeetingMemberSerializer,
 )
 
 
@@ -33,8 +28,8 @@ class MeetingView(LoginRequiredMixin, View):
         meeting = get_object_or_404(Meeting, id=meeting_id)
 
         # ユーザーがミーティングのメンバーかどうかを確認
-        if not MeetingMember.objects\
-                .filter(meeting=meeting, member__user=request.user)\
+        if not GroupMember.objects\
+                .filter(group=meeting.group, user=request.user)\
                 .exists():
             return HttpResponse(status=403)
 
