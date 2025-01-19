@@ -52,7 +52,6 @@ class GroupAPIView(APIView):
 
     class PostOutSerializer(serializers.ModelSerializer):
 
-        id = serializers.UUIDField(format='hex')
 
         class Meta:
             model = Group
@@ -390,9 +389,6 @@ class GroupMessageAPIView(APIView):
 
     class PostOutSerializer(serializers.ModelSerializer):
 
-        # Serializer settings
-        id = serializers.UUIDField(format='hex')
-
         # Serializer meta properties
         class Meta:
             model = GroupMessage
@@ -466,8 +462,6 @@ class GroupMessageOneAPIView(APIView):
 
     class PatchOutSerializer(serializers.ModelSerializer):
 
-        # Message-id by urn format
-        id = serializers.UUIDField(format='hex')
 
         # Serializer meta properties
         class Meta:
