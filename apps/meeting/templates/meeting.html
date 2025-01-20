@@ -53,7 +53,6 @@
           <img src="https://placehold.jp/40x40.png" alt="User Icon" class="rounded-circle" width="40" height="40">
           <h6 class="mb-0">[[ userData.username ]]</h6>
         </div>
-
         <!-- 2段目: 戻るボタン & 別ウィンドウボタン -->
         <div class="d-flex gap-2 mb-3">
           <button class="btn btn-outline-primary flex-grow-1 d-flex justify-content-center align-items-center"
@@ -67,7 +66,6 @@
             別ウィンドウ
           </button>
         </div>
-
         <!-- 3段目: マイク、カメラ、画面共有、設定ボタン -->
         <div class="d-flex gap-2">
           <button class="btn btn-outline-primary flex-grow-1 d-flex justify-content-center align-items-center">
@@ -84,9 +82,7 @@
           </button>
         </div>
       </div>
-
     </div>
-
     <!-- Main Chat Section -->
     <div class="d-flex flex-column flex-grow-1">
       <!-- Message List -->
@@ -224,13 +220,11 @@
 
       async created() {
         if (this.isLoading) return;
-
-        // URL パラメータから description を取得
         const urlParams = new URLSearchParams(window.location.search);
         this.description = urlParams.get("description") || "議題が設定されていません";
-
         try {
           this.isLoading = true;
+          this.user = (await axios.get("/api/user/")).data;
           this.meetingMessageList = (await axios.get(`/api/meeting/${this.meetingId}/message/`)).data;
           this.meetingMemberList = (await axios.get(`/api/meeting/${this.meetingId}/member/`)).data;
           this.$nextTick(() => ((e) => { e.scrollTop = e.scrollHeight; })(document.getElementById('message-list')));
@@ -249,8 +243,6 @@
           this.isLoading = false;
         }
       },
-
-
       mounted() {
         axios.defaults.xsrfCookieName = "csrftoken";
         axios.defaults.xsrfHeaderName = "X-CSRFToken";
@@ -288,19 +280,16 @@
             this.isLoading = false;
           }
         },
-
-
-
-
+        exitToGroup() {
+          window.location.href = "/group/{{ meeting.group.id }}/";
+        },
         openUserListWindow() {
           const width = 800;
           const height = 600;
           const left = (window.screen.width - width) / 2;
           const top = (window.screen.height - height) / 2;
-
-          // URLにmeeting_idを含める
           this.userListWindow = window.open(
-            `/meeting/userlist/${this.meetingId}/`,  // URLを修正
+            `/meeting/userlist/${this.meetingId}/`,
             'UserList',
             `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
           );

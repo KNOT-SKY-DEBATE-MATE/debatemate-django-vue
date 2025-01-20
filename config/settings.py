@@ -107,7 +107,20 @@ ROOT_URLCONF = 'config.urls'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#csrf-cookie-name
 
 CSRF_COOKIE_NAME = 'csrftoken'
+
+CSRF_COOKIE_SECURE = True
+
 CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
+
+
+# Django Security
+# https://docs.djangoproject.com/en/5.1/ref/settings/#std:setting-SECURE_PROXY_SSL_HEADER
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+SECURE_SSL_REDIRECT = True
+
+SESSION_COOKIE_SECURE = True
 
 
 # Templates
@@ -145,27 +158,27 @@ ASGI_APPLICATION = 'config.asgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': config('POSTGRES_DB'),
-#         'USER': config('POSTGRES_USER'),
-#         'PASSWORD': config('POSTGRES_PASSWORD'),
-#         'HOST': 'postgres',
-#         'PORT': config('POSTGRES_PORT'),
-#         'CONN_MAX_AGE': 600,
-#         'OPTIONS': {
-#             # 'sslmode': 'require',
-#         },
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': config('POSTGRES_DB'),
+        'USER': config('POSTGRES_USER'),
+        'PASSWORD': config('POSTGRES_PASSWORD'),
+        'HOST': 'postgres',
+        'PORT': config('POSTGRES_PORT'),
+        'CONN_MAX_AGE': 600,
+        'OPTIONS': {
+            # 'sslmode': 'require',
+        },
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # Password hashers
@@ -272,20 +285,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Django Redis
 # https://django-redis.readthedocs.io/en/latest/
 
-# CACHE = {
-#     'default': {
-#         'BACKEND': 'django_redis.cache.RedisCache',
-#         'LOCATION': 'redis://:{redis_password}@${redis_host}:{redis_port}/{redis_db}'.format(
-#             redis_host=config('REDIS_HOST'),
-#             redis_port=config('REDIS_PORT'),
-#             redis_db=config('REDIS_DB'),
-#             redis_password=config('REDIS_PASSWORD'),
-#         ),
-#         'OPTIONS': {
-#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-#         },
-#     }
-# }
+CACHE = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://:{redis_password}@${redis_host}:{redis_port}/{redis_db}'.format(
+            redis_host=config('REDIS_HOST'),
+            redis_port=config('REDIS_PORT'),
+            redis_db=config('REDIS_DB'),
+            redis_password=config('REDIS_PASSWORD'),
+        ),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    }
+}
 
 
 # Websocket backend settings
@@ -295,3 +308,10 @@ WEBSOCKET_URL = 'http://{websocket_host}:{websocket_port}/'.format(
     websocket_port=config('WEBSOCKET_PORT'),
 )
 
+
+# Annotator backend settings
+
+ANNOTATOR_URL = 'http://{annotator_host}:{annotator_port}/'.format(
+    annotator_host=config('ANNOTATOR_HOST'),
+    annotator_port=config('ANNOTATOR_PORT'),
+)

@@ -2,6 +2,7 @@
 import requests
 
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -255,7 +256,7 @@ class MeetingMessageAPIView(APIView):
 
         # Post event to websocket server
         try:
-            response = requests.post(self.WEBSOCKET_URL + f'on/meeting/{meeting.id}/message/')
+            response = requests.post(settings.WEBSOCKET_URL + f'on/meeting/{meeting.id}/message/')
             response.raise_for_status()
         except requests.exceptions.HTTPError:
             pass
@@ -367,7 +368,10 @@ class MeetingMessageAnnotationAPIView(APIView):
 
             try:
                 # Get meeting-messages
-                response = requests.post("...", json=out_serializer.data)
+                response = requests.post(settings.ANNOTATOR_URL + f'ai/annotate/', json={
+                    'description': meeting.description,
+                    'messages': [out_serializer.data]
+                })
                 response.raise_for_status()
 
             except requests.exceptions.HTTPError as err:

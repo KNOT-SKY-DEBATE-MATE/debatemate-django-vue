@@ -11,4 +11,3 @@ certbot-nginx
 gunicorn
 cryptography
 requests
-httpx
